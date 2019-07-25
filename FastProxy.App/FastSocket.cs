@@ -6,18 +6,19 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FastProxy
+namespace FastProxy.App
 {
-    public abstract class FastSocket
+    internal abstract class FastSocket : IFastSocket
     {
         public const int DefaultBufferSize = 4096;
 
-        private readonly Socket socket;
-        private readonly SocketAsyncEventArgs sendEventArgs;
-        private readonly SocketAsyncEventArgs receiveEventArgs;
+        private Socket socket;
+        private SocketAsyncEventArgs sendEventArgs;
+        private SocketAsyncEventArgs receiveEventArgs;
         private readonly object syncRoot = new object();
         private bool sending;
         private ArraySegment<byte> pendingSend;
+        private bool disposed;
 
         public event ExceptionEventHandler ExceptionOccured;
 
@@ -33,7 +34,7 @@ namespace FastProxy
             receiveEventArgs.SetBuffer(new byte[bufferSize], 0, bufferSize);
         }
 
-        internal void Start()
+        public void Start()
         {
             BeginReceive();
         }
@@ -59,11 +60,11 @@ namespace FastProxy
 
         protected abstract void ProcessRead(ArraySegment<byte> buffer);
 
-        public void Close()
+        public virtual void Close()
         {
             try
             {
-                socket.Shutdown(SocketShutdown.Both);
+                Dispose();
             }
             catch (Exception ex)
             {
@@ -136,6 +137,30 @@ namespace FastProxy
         protected virtual void OnExceptionOccured(ExceptionEventArgs e)
         {
             ExceptionOccured?.Invoke(this, e);
+        }
+
+        public void Dispose()
+        {
+            if (!disposed)
+            {
+                if (socket != null)
+                {
+                    socket.Dispose();
+                    socket = null;
+                }
+                if (sendEventArgs != null)
+                {
+                    sendEventArgs.Dispose();
+                    sendEventArgs = null;
+                }
+                if (receiveEventArgs != null)
+                {
+                    receiveEventArgs.Dispose();
+                    receiveEventArgs = null;
+                }
+
+                disposed = true;
+            }
         }
     }
 }

@@ -15,6 +15,11 @@ namespace FastProxy.App
         {
             //RunEcho();
 
+            //for (int i = 0; i < 10; i++)
+            //{
+            //    RunEcho();
+            //}
+
             //RunBulk();
 
             for (int i = 0; i < 10; i++)
@@ -25,13 +30,18 @@ namespace FastProxy.App
 
         private static void RunBulk()
         {
-            int blockSize = 4096;
-            int blockCount = 100_000;
+            const int blockSize = 4096;
+            const int blockCount = 10_000;
+            //const int blockCount = 10;
+            const int clients = 10;
 
-            var server = new BulkServer(new IPEndPoint(0, 0), blockSize, blockCount);
+            var server = new BulkServer(new IPEndPoint(IPAddress.Loopback, 0), blockSize, blockCount);
             server.Start();
 
-            int clients = 10;
+            var proxy = new ProxyServer(new IPEndPoint(IPAddress.Loopback, 0), new Connector(server.LocalEndPoint));
+            proxy.ExceptionOccured += (s, e) => Console.WriteLine($"EXCEPTION: {e.Exception.Message} ({e.Exception.GetType().FullName})");
+            proxy.Start();
+
             int completed = 0;
             object syncRoot = new object();
             var stopwatch = Stopwatch.StartNew();
@@ -40,7 +50,7 @@ namespace FastProxy.App
             {
                 for (int i = 0; i < clients; i++)
                 {
-                    var client = new BulkClient(new IPEndPoint(IPAddress.Loopback, server.LocalEndPoint.Port), blockSize, blockCount);
+                    var client = new BulkClient(proxy.Endpoint, blockSize, blockCount);
                     client.Completed += (s, e) =>
                     {
                         lock (syncRoot)
@@ -63,10 +73,47 @@ namespace FastProxy.App
             Console.WriteLine($"MB per second: {mbPerSecond:0.00}");
         }
 
+        private class Connector : IConnector
+        {
+            private readonly IPEndPoint endpoint;
+
+            public Connector(IPEndPoint endpoint)
+            {
+                this.endpoint = endpoint;
+            }
+
+            public bool Connect(out IPEndPoint endpoint, out IListener listener)
+            {
+                endpoint = this.endpoint;
+                listener = null;
+                //listener = new Listener();
+                return true;
+            }
+        }
+
+        private class Listener : IListener
+        {
+            public void Connected()
+            {
+                Console.WriteLine("CONNECTED");
+            }
+
+            public void Closed()
+            {
+                Console.WriteLine("CLOSED");
+            }
+
+            public OperationResult DataReceived(ref ArraySegment<byte> buffer, Direction direction)
+            {
+                //Console.WriteLine($"RECEIVED: direction {direction}, buffer {buffer.Count}");
+                return OperationResult.Continue;
+            }
+        }
+
         private static void RunEcho()
         {
             var buffer = new byte[4096];
-            var blockCount = 100_000;
+            var blockCount = 20_000;
 
             new Random().NextBytes(buffer);
 

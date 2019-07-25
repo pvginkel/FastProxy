@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace FastProxy
 {
-    public class Class1
+    public interface IConnector
     {
+        bool Connect(out IPEndPoint endpoint, out IListener listener);
     }
 }

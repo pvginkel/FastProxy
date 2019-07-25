@@ -6,12 +6,12 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FastProxy
+namespace FastProxy.App
 {
-    public abstract class FastClient
+    internal abstract class FastClient
     {
         private readonly IPEndPoint endpoint;
-        private FastSocket socket;
+        private IFastSocket socket;
 
         public event ExceptionEventHandler ExceptionOccured;
 
@@ -20,7 +20,7 @@ namespace FastProxy
             this.endpoint = endpoint;
         }
 
-        protected abstract FastSocket CreateSocket(Socket client);
+        protected abstract IFastSocket CreateSocket(Socket client);
 
         public void Start()
         {
@@ -39,7 +39,7 @@ namespace FastProxy
 
         public void Close()
         {
-            socket.Close();
+            socket.Dispose();
         }
     }
 }

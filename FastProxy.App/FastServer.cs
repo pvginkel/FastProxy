@@ -6,9 +6,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FastProxy
+namespace FastProxy.App
 {
-    public abstract class FastServer
+    internal abstract class FastServer
     {
         public const int DefaultBacklog = 16;
 
@@ -54,7 +54,7 @@ namespace FastProxy
             ProcessAccept(e);
         }
 
-        protected abstract FastSocket CreateSocket(Socket client);
+        protected abstract IFastSocket CreateSocket(Socket client);
 
         private void ProcessAccept(SocketAsyncEventArgs acceptEventArg)
         {

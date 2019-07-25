@@ -20,7 +20,7 @@ namespace FastProxy.App
             this.blockCount = blockCount;
         }
 
-        protected override FastSocket CreateSocket(Socket client)
+        protected override IFastSocket CreateSocket(Socket client)
         {
             return new BulkSocket(client, blockSize, blockCount);
         }

@@ -15,28 +15,123 @@ namespace FastProxy.App
         {
         }
 
-        protected override FastSocket CreateSocket(Socket client)
+        protected override IFastSocket CreateSocket(Socket client)
         {
             return new EchoSocket(client);
         }
 
-        private class EchoSocket : FastSocket
+        private class EchoSocket : IFastSocket
         {
-            public EchoSocket(Socket socket, int bufferSize = DefaultBufferSize)
-                : base(socket, bufferSize)
+            private Socket socket;
+            private SocketAsyncEventArgs eventArgs;
+            private readonly byte[] buffer = new byte[4096];
+            private bool disposed;
+
+            public event ExceptionEventHandler ExceptionOccured;
+
+            public EchoSocket(Socket socket)
             {
+                this.socket = socket;
+
+                eventArgs = new SocketAsyncEventArgs();
+                eventArgs.Completed += EventArgs_Completed;
             }
 
-            protected override void ProcessRead(ArraySegment<byte> buffer)
+            public void Start()
             {
-                //Console.WriteLine("Received on server: " + Encoding.UTF8.GetString(buffer.ToArray()));
-
-                Send(buffer);
+                StartReceive();
             }
 
-            protected override void SendComplete()
+            private void EventArgs_Completed(object sender, SocketAsyncEventArgs e)
             {
-                // Nothing to do.
+                switch (e.LastOperation)
+                {
+                    case SocketAsyncOperation.Send:
+                        EndSend();
+                        break;
+                    case SocketAsyncOperation.Receive:
+                        EndReceive();
+                        break;
+                }
+            }
+
+            private void StartReceive()
+            {
+                var eventArgs = this.eventArgs;
+                if (eventArgs == null)
+                    return;
+
+                eventArgs.SetBuffer(buffer, 0, buffer.Length);
+
+                if (!socket.ReceiveAsync(eventArgs))
+                    EndReceive();
+            }
+
+            private void EndReceive()
+            {
+                var eventArgs = this.eventArgs;
+                if (eventArgs == null)
+                    return;
+
+                var bytesTransferred = eventArgs.BytesTransferred;
+                if (bytesTransferred == 0 || eventArgs.SocketError != SocketError.Success)
+                {
+                    Close();
+                    return;
+                }
+
+                eventArgs.SetBuffer(buffer, 0, bytesTransferred);
+
+                if (!socket.SendAsync(eventArgs))
+                    EndSend();
+            }
+
+            private void EndSend()
+            {
+                var eventArgs = this.eventArgs;
+                if (eventArgs.SocketError != SocketError.Success)
+                {
+                    Close();
+                    return;
+                }
+
+                StartReceive();
+            }
+
+            private void Close()
+            {
+                try
+                {
+                    Dispose();
+                }
+                catch (Exception ex)
+                {
+                    OnExceptionOccured(new ExceptionEventArgs(ex));
+                }
+            }
+
+            private void OnExceptionOccured(ExceptionEventArgs e)
+            {
+                ExceptionOccured?.Invoke(this, e);
+            }
+
+            public void Dispose()
+            {
+                if (!disposed)
+                {
+                    if (socket != null)
+                    {
+                        socket.Dispose();
+                        socket = null;
+                    }
+                    if (eventArgs != null)
+                    {
+                        eventArgs.Dispose();
+                        eventArgs = null;
+                    }
+
+                    disposed = true;
+                }
             }
         }
     }

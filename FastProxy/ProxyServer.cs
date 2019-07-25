@@ -1,0 +1,156 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FastProxy
+{
+    public class ProxyServer : IDisposable
+    {
+        public const int DefaultBacklog = 16;
+        public const int DefaultBufferSize = 4096;
+
+        private readonly IPEndPoint endpoint;
+        private readonly IConnector connector;
+        private readonly int backlog;
+        private readonly int bufferSize;
+        private Socket socket;
+        private SocketAsyncEventArgs acceptEventArgs;
+        private readonly HashSet<ProxyClient> clients = new HashSet<ProxyClient>();
+        private readonly object syncRoot = new object();
+        private bool disposed;
+
+        public IPEndPoint Endpoint => (IPEndPoint)socket.LocalEndPoint;
+
+        public event ExceptionEventHandler ExceptionOccured;
+
+        public ProxyServer(IPEndPoint endpoint, IConnector connector, int backlog = DefaultBacklog, int bufferSize = DefaultBufferSize)
+        {
+            this.endpoint = endpoint;
+            this.connector = connector;
+            this.backlog = backlog;
+            this.bufferSize = bufferSize;
+        }
+
+        public void Start()
+        {
+            acceptEventArgs = new SocketAsyncEventArgs();
+            acceptEventArgs.Completed += AcceptEventArgs_Completed;
+
+            socket = new Socket(endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            socket.Bind(endpoint);
+            socket.Listen(backlog);
+
+            StartAccept();
+        }
+
+        private void StartAccept()
+        {
+            acceptEventArgs.AcceptSocket = null;
+
+            if (!socket.AcceptAsync(acceptEventArgs))
+                EndAccept();
+        }
+
+        private void AcceptEventArgs_Completed(object sender, SocketAsyncEventArgs e)
+        {
+            EndAccept();
+        }
+
+        private void EndAccept()
+        {
+            var client = acceptEventArgs.AcceptSocket;
+
+            if (client.Connected)
+            {
+                try
+                {
+                    if (connector.Connect(out var endpoint, out var listener))
+                    {
+                        var proxyClient = new ProxyClient(client, endpoint, listener, bufferSize);
+
+                        lock (syncRoot)
+                        {
+                            clients.Add(proxyClient);
+                        }
+
+                        proxyClient.ExceptionOccured += (s, e) => OnExceptionOccured(e);
+                        proxyClient.Closed += ProxyClient_Closed;
+                        proxyClient.Start();
+                    }
+                    else
+                    {
+                        client.Shutdown(SocketShutdown.Both);
+                        client.Dispose();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    OnExceptionOccured(new ExceptionEventArgs(ex));
+                }
+            }
+
+            StartAccept();
+        }
+
+        private void ProxyClient_Closed(object sender, EventArgs e)
+        {
+            lock (syncRoot)
+            {
+                clients.Remove((ProxyClient)sender);
+            }
+        }
+
+        protected virtual void OnExceptionOccured(ExceptionEventArgs e)
+        {
+            ExceptionOccured?.Invoke(this, e);
+        }
+
+        private void CloseClientsSafely()
+        {
+            var clients = new List<ProxyClient>();
+
+            lock (syncRoot)
+            {
+                clients = new List<ProxyClient>(this.clients);
+                this.clients.Clear();
+            }
+
+            foreach (var client in clients)
+            {
+                try
+                {
+                    client.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    OnExceptionOccured(new ExceptionEventArgs(ex));
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            if (!disposed)
+            {
+                if (socket != null)
+                {
+                    socket.Dispose();
+                    socket = null;
+                }
+                if (acceptEventArgs != null)
+                {
+                    acceptEventArgs.Dispose();
+                    acceptEventArgs = null;
+                }
+
+                CloseClientsSafely();
+
+                disposed = true;
+            }
+        }
+    }
+}
