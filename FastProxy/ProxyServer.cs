@@ -53,8 +53,15 @@ namespace FastProxy
         {
             acceptEventArgs.AcceptSocket = null;
 
-            if (!socket.AcceptAsync(acceptEventArgs))
-                EndAccept();
+            try
+            {
+                if (!socket.AcceptAsync(acceptEventArgs))
+                    EndAccept();
+            }
+            catch (ObjectDisposedException)
+            {
+                // We're disposing. Ignore.
+            }
         }
 
         private void AcceptEventArgs_Completed(object sender, SocketAsyncEventArgs e)
@@ -64,7 +71,11 @@ namespace FastProxy
 
         private void EndAccept()
         {
-            var client = acceptEventArgs.AcceptSocket;
+            var eventArgs = acceptEventArgs;
+            if (eventArgs == null)
+                return;
+
+            var client = eventArgs.AcceptSocket;
 
             if (client.Connected)
             {
@@ -113,7 +124,7 @@ namespace FastProxy
 
         private void CloseClientsSafely()
         {
-            var clients = new List<ProxyClient>();
+            List<ProxyClient> clients;
 
             lock (syncRoot)
             {
@@ -140,7 +151,6 @@ namespace FastProxy
             {
                 if (socket != null)
                 {
-                    socket.Shutdown(SocketShutdown.Both);
                     socket.Dispose();
                     socket = null;
                 }
