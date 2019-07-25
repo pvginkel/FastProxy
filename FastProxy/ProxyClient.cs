@@ -131,11 +131,13 @@ namespace FastProxy
             {
                 if (source != null)
                 {
+                    source.Shutdown(SocketShutdown.Both);
                     source.Dispose();
                     source = null;
                 }
                 if (target != null)
                 {
+                    target.Shutdown(SocketShutdown.Both);
                     target.Dispose();
                     target = null;
                 }
@@ -207,7 +209,7 @@ namespace FastProxy
 
                     eventArgs.Receive.SetBuffer(offset, client.bufferSize);
 
-                    if (!source.ReceiveAsync(eventArgs.Receive))
+                    if (!source.ReceiveAsyncSuppressFlow(eventArgs.Receive))
                         EndReceive();
                 }
                 catch (Exception ex)
@@ -218,8 +220,6 @@ namespace FastProxy
 
             private void ReceiveEventArgs_Completed(object sender, SocketAsyncEventArgs e)
             {
-                Debug.Assert(e.LastOperation == SocketAsyncOperation.Receive);
-
                 EndReceive();
             }
 
@@ -293,7 +293,7 @@ namespace FastProxy
 
                     UpdateStateStartSending();
 
-                    if (!target.SendAsync(eventArgs.Send))
+                    if (!target.SendAsyncSuppressFlow(eventArgs.Send))
                         EndSend();
                 }
                 catch (Exception ex)
@@ -304,8 +304,6 @@ namespace FastProxy
 
             private void SendEventArgs_Completed(object sender, SocketAsyncEventArgs e)
             {
-                Debug.Assert(e.LastOperation == SocketAsyncOperation.Send);
-
                 EndSend();
             }
 

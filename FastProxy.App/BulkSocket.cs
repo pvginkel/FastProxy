@@ -29,11 +29,11 @@ namespace FastProxy.App
 
             sendEventArgs = new SocketAsyncEventArgs();
             sendEventArgs.SetBuffer(new byte[blockSize], 0, blockSize);
-            sendEventArgs.Completed += SendEventArgs_Completed;
+            sendEventArgs.Completed += (s, e) => EndSend();
 
             receiveEventArgs = new SocketAsyncEventArgs();
             receiveEventArgs.SetBuffer(new byte[blockSize], 0, blockSize);
-            receiveEventArgs.Completed += ReceiveEventArgs_Completed;
+            receiveEventArgs.Completed += (s, e) => EndReceive();
         }
 
         public void Start()
@@ -42,23 +42,14 @@ namespace FastProxy.App
             StartReceive();
         }
 
-        private void SendEventArgs_Completed(object sender, SocketAsyncEventArgs e)
-        {
-            Debug.Assert(e.LastOperation == SocketAsyncOperation.Send);
-
-            EndSend();
-        }
-
         private void StartSend()
         {
             var eventArgs = sendEventArgs;
             if (eventArgs == null)
                 return;
 
-            while (true)
+            do
             {
-                bool send = false;
-
                 lock (syncRoot)
                 {
                     if (blockCount <= 0)
@@ -68,19 +59,13 @@ namespace FastProxy.App
                             Close();
                             OnCompleted();
                         }
+                        return;
                     }
-                    else
-                    {
-                        blockCount--;
-                        send = true;
-                    }
-                }
 
-                if (!send)
-                    return;
-                if (socket.SendAsync(eventArgs))
-                    return;
+                    blockCount--;
+                }
             }
+            while (!socket.SendAsyncSuppressFlow(eventArgs));
         }
 
         private void EndSend()
@@ -94,22 +79,17 @@ namespace FastProxy.App
             if (eventArgs == null)
                 return;
 
-            if (!socket.ReceiveAsync(eventArgs))
+            if (!socket.ReceiveAsyncSuppressFlow(eventArgs))
                 EndReceive();
-        }
-
-        private void ReceiveEventArgs_Completed(object sender, SocketAsyncEventArgs e)
-        {
-            Debug.Assert(e.LastOperation == SocketAsyncOperation.Receive);
-
-            EndReceive();
         }
 
         private void EndReceive()
         {
-            while (true)
+            SocketAsyncEventArgs eventArgs;
+
+            do
             {
-                var eventArgs = receiveEventArgs;
+                eventArgs = receiveEventArgs;
                 if (eventArgs == null)
                     return;
 
@@ -117,10 +97,9 @@ namespace FastProxy.App
                 {
                     Close();
                     OnCompleted();
+
                     return;
                 }
-
-                bool receive = true;
 
                 lock (syncRoot)
                 {
@@ -128,17 +107,14 @@ namespace FastProxy.App
 
                     if (remaining <= 0 && blockCount <= 0)
                     {
-                        receive = false;
                         Close();
                         OnCompleted();
+
+                        return;
                     }
                 }
-
-                if (!receive)
-                    return;
-                if (socket.ReceiveAsync(eventArgs))
-                    return;
             }
+            while (!socket.ReceiveAsyncSuppressFlow(eventArgs));
         }
 
         private void Close()
@@ -169,6 +145,7 @@ namespace FastProxy.App
             {
                 if (socket != null)
                 {
+                    socket.Shutdown(SocketShutdown.Both);
                     socket.Dispose();
                     socket = null;
                 }

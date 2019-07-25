@@ -78,9 +78,6 @@ namespace FastProxy.App
             StartAccept(acceptEventArg);
         }
 
-        protected virtual void OnExceptionOccured(ExceptionEventArgs e)
-        {
-            ExceptionOccured?.Invoke(this, e);
-        }
+        protected virtual void OnExceptionOccured(ExceptionEventArgs e) => ExceptionOccured?.Invoke(this, e);
     }
 }

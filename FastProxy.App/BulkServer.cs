@@ -12,6 +12,8 @@ namespace FastProxy.App
     {
         private readonly int blockSize;
         private readonly int blockCount;
+        private readonly HashSet<BulkSocket> sockets = new HashSet<BulkSocket>();
+        private readonly object syncRoot = new object();
 
         public BulkServer(IPEndPoint endpoint, int blockSize, int blockCount, int backlog = DefaultBacklog)
             : base(endpoint, backlog)
@@ -22,7 +24,21 @@ namespace FastProxy.App
 
         protected override IFastSocket CreateSocket(Socket client)
         {
-            return new BulkSocket(client, blockSize, blockCount);
+            var socket = new BulkSocket(client, blockSize, blockCount);
+
+            lock (syncRoot)
+            {
+                sockets.Add(socket);
+                socket.Completed += (s, e) =>
+                {
+                    lock (syncRoot)
+                    {
+                        sockets.Remove(socket);
+                    }
+                };
+            }
+
+            return socket;
         }
     }
 }

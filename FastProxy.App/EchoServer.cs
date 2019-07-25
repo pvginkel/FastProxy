@@ -64,7 +64,7 @@ namespace FastProxy.App
 
                 eventArgs.SetBuffer(0, buffer.Length);
 
-                if (!socket.ReceiveAsync(eventArgs))
+                if (!socket.ReceiveAsyncSuppressFlow(eventArgs))
                     EndReceive();
             }
 
@@ -83,7 +83,7 @@ namespace FastProxy.App
 
                 eventArgs.SetBuffer(0, bytesTransferred);
 
-                if (!socket.SendAsync(eventArgs))
+                if (!socket.SendAsyncSuppressFlow(eventArgs))
                     EndSend();
             }
 
@@ -122,6 +122,7 @@ namespace FastProxy.App
                 {
                     if (socket != null)
                     {
+                        socket.Shutdown(SocketShutdown.Both);
                         socket.Dispose();
                         socket = null;
                     }

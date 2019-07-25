@@ -140,6 +140,7 @@ namespace FastProxy
             {
                 if (socket != null)
                 {
+                    socket.Shutdown(SocketShutdown.Both);
                     socket.Dispose();
                     socket = null;
                 }

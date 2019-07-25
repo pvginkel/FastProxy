@@ -15,127 +15,213 @@ namespace FastProxy.App
         {
             DebugListener.Setup();
 
-            //RunEcho();
+            int offset = 0;
 
-            for (int i = 0; i < 10; i++)
+            int loops = 1;
+            if (args[0] == "burn")
             {
-                RunEcho();
+                loops = int.Parse(args[1]);
+                offset = 2;
             }
 
-            //RunBulk(1);
+            string type = args[offset];
 
-            //for (int i = 0; i < 10; i++)
-            //{
-            //    RunBulk();
-            //}
+            int parallel = 10;
+            if (args.Length > offset + 1)
+                parallel = int.Parse(args[offset + 1]);
+            int blockSize = 4096;
+            if (args.Length > offset + 2)
+                blockSize = int.Parse(args[offset + 2]);
+            int blockCount = 10_000;
+            if (args.Length > offset + 3)
+                blockCount = int.Parse(args[offset + 3]);
+
+            int count = loops * parallel;
+
+            switch (type)
+            {
+                case "echo":
+                    RunEcho(parallel, count, blockSize, blockCount);
+                    break;
+
+                case "bulk":
+                    RunBulk(parallel, count, blockSize, blockCount);
+                    break;
+            }
         }
-        private static void RunBulk(int clients = 10, int blockSize = 4096, int blockCount = 10_000)
+
+        private static void Run(int parallel, int count, Func<IPEndPoint, FastServer> serverFactory, Func<IPEndPoint, FastClient> clientFactory)
         {
-            var server = new BulkServer(new IPEndPoint(IPAddress.Loopback, 0), blockSize, blockCount);
+            var server = serverFactory(new IPEndPoint(IPAddress.Loopback, 0));
             server.Start();
 
-            var proxy = new ProxyServer(new IPEndPoint(IPAddress.Loopback, 0), new Connector(server.Endpoint));
+            var listener = new TransferredListener();
+
+            var proxy = new ProxyServer(new IPEndPoint(IPAddress.Loopback, 0), new Connector(server.Endpoint, listener));
             proxy.ExceptionOccured += (s, e) => Console.WriteLine($"EXCEPTION: {e.Exception.Message} ({e.Exception.GetType().FullName})");
             proxy.Start();
 
+            int started = parallel;
             int completed = 0;
+            int running = 0;
             object syncRoot = new object();
             var stopwatch = Stopwatch.StartNew();
+            var clients = new HashSet<FastClient>();
 
             using (var @event = new ManualResetEventSlim())
             {
-                for (int i = 0; i < clients; i++)
+                for (int i = 0; i < parallel; i++)
                 {
-                    var client = new BulkClient(proxy.Endpoint, blockSize, blockCount);
-                    client.Completed += (s, e) =>
-                    {
-                        lock (syncRoot)
-                        {
-                            if (++completed >= clients)
-                                @event.Set();
-                        }
-                    };
-                    client.Start();
+                    ThreadPool.QueueUserWorkItem(p => Start(@event));
                 }
 
-                @event.Wait();
+                do
+                {
+                    PrintStatus();
+                }
+                while (!@event.Wait(TimeSpan.FromSeconds(1))) ;
             }
 
-            Console.WriteLine(stopwatch.Elapsed);
+            PrintStatus();
 
-            long total = (long)blockSize * (long)blockCount * (long)clients;
-            double bytesPerSecond = total / stopwatch.Elapsed.TotalSeconds;
-            double mbPerSecond = bytesPerSecond / (1024 * 1024);
-            Console.WriteLine($"MB per second: {mbPerSecond:0.00}");
+            void Start(ManualResetEventSlim @event)
+            {
+                var client = clientFactory(proxy.Endpoint);
+
+                client.Completed += (s, e) =>
+                {
+                    lock (syncRoot)
+                    {
+                        clients.Remove(client);
+
+                        completed++;
+                        running--;
+
+                        if (started < count)
+                        {
+                            started++;
+                            Start(@event);
+                        }
+                        else if (completed >= count)
+                        {
+                            @event.Set();
+                        }
+                    }
+                };
+
+                client.Start();
+
+                lock (syncRoot)
+                {
+                    clients.Add(client);
+                    running++;
+                }
+            }
+
+            void PrintStatus()
+            {
+                double mbPerSecond = listener.GetAverage() / (1024 * 1024);
+
+                Console.WriteLine($"MB per second: {mbPerSecond:0.00}, completed {completed}, running {running}");
+            }
+        }
+
+        private static void RunEcho(int parallel, int count, int blockSize, int blockCount)
+        {
+            var buffer = new byte[blockSize];
+
+            new Random().NextBytes(buffer);
+
+            Run(
+                parallel,
+                count,
+                p => new EchoServer(p),
+                p => new EchoClient(p, buffer, blockCount)
+            );
+        }
+
+        private static void RunBulk(int parallel, int count, int blockSize, int blockCount)
+        {
+            Run(
+                parallel,
+                count,
+                p => new BulkServer(p, blockSize, blockCount),
+                p => new BulkClient(p, blockSize, blockCount)
+            );
         }
 
         private class Connector : IConnector
         {
             private readonly IPEndPoint endpoint;
+            private readonly IListener listener;
 
-            public Connector(IPEndPoint endpoint)
+            public Connector(IPEndPoint endpoint, IListener listener)
             {
                 this.endpoint = endpoint;
+                this.listener = listener;
             }
 
             public bool Connect(out IPEndPoint endpoint, out IListener listener)
             {
                 endpoint = this.endpoint;
-                listener = null;
-                //listener = new Listener();
+                listener = this.listener;
                 return true;
             }
         }
 
-        private class Listener : IListener
+        private class TransferredListener : IListener
         {
+            private readonly Stopwatch stopwatch = Stopwatch.StartNew();
+            private long last;
+            private readonly object syncRoot = new object();
+            private readonly Queue<double> averages = new Queue<double>();
+            private TimeSpan lastElapsed;
+            private long upstream;
+            private long downstream;
+
+            public long Upstream => upstream;
+            public long Downstream => downstream;
+
             public void Connected()
             {
-                Console.WriteLine("CONNECTED");
             }
 
             public void Closed()
             {
-                Console.WriteLine("CLOSED");
             }
 
             public OperationResult DataReceived(int bytesTransferred, Direction direction)
             {
-                //Console.WriteLine($"RECEIVED: direction {direction}, buffer {buffer.Count}");
+                if (direction == Direction.Downstream)
+                    Interlocked.Add(ref upstream, bytesTransferred);
+                else
+                    Interlocked.Add(ref downstream, bytesTransferred);
+
                 return OperationResult.Continue;
             }
-        }
 
-        private static void RunEcho(int blockCount = 20_000)
-        {
-            var buffer = new byte[4096];
-
-            new Random().NextBytes(buffer);
-
-            var server = new EchoServer(new IPEndPoint(IPAddress.Loopback, 0));
-            server.Start();
-
-            var proxy = new ProxyServer(new IPEndPoint(IPAddress.Loopback, 0), new Connector(server.Endpoint));
-            proxy.ExceptionOccured += (s, e) => Console.WriteLine($"EXCEPTION: {e.Exception.Message} ({e.Exception.GetType().FullName})");
-            proxy.Start();
-
-            var client = new EchoClient(proxy.Endpoint, buffer, blockCount);
-
-            var stopwatch = Stopwatch.StartNew();
-
-            using (var @event = new ManualResetEventSlim())
+            public double GetAverage()
             {
-                client.Completed += (s, e) => @event.Set();
-                client.Start();
-                @event.Wait();
+                long transferred = Volatile.Read(ref upstream) + Volatile.Read(ref downstream);
+                var elapsed = stopwatch.Elapsed;
+
+                lock (syncRoot)
+                {
+                    long difference = transferred - last;
+                    last = transferred;
+                    double average = difference / (elapsed - lastElapsed).TotalSeconds;
+                    lastElapsed = elapsed;
+
+                    while (averages.Count > 5)
+                    {
+                        averages.Dequeue();
+                    }
+
+                    averages.Enqueue(average);
+
+                    return averages.Average();
+                }
             }
-
-            Console.WriteLine(stopwatch.Elapsed);
-
-            int total = buffer.Length * blockCount;
-            double bytesPerSecond = total / stopwatch.Elapsed.TotalSeconds;
-            double mbPerSecond = bytesPerSecond / (1024 * 1024);
-            Console.WriteLine($"MB per second: {mbPerSecond:0.00}");
         }
     }
 }

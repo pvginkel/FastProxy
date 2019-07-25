@@ -13,6 +13,7 @@ namespace FastProxy.App
         private readonly IPEndPoint endpoint;
         private IFastSocket socket;
 
+        public event EventHandler Completed;
         public event ExceptionEventHandler ExceptionOccured;
 
         protected FastClient(IPEndPoint endpoint)
@@ -32,10 +33,8 @@ namespace FastProxy.App
             socket.Start();
         }
 
-        protected virtual void OnExceptionOccured(ExceptionEventArgs e)
-        {
-            ExceptionOccured?.Invoke(this, e);
-        }
+        protected virtual void OnCompleted() => Completed?.Invoke(this, EventArgs.Empty);
+        protected virtual void OnExceptionOccured(ExceptionEventArgs e) => ExceptionOccured?.Invoke(this, e);
 
         public void Close()
         {

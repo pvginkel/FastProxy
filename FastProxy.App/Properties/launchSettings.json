@@ -1,0 +1,32 @@
+{
+  "profiles": {
+    "Bulk 10, size 4096, count 10,000": {
+      "commandName": "Project",
+      "commandLineArgs": "bulk 10 4096 10000"
+    },
+    "Bulk 50, size 4096, count 20,000": {
+      "commandName": "Project",
+      "commandLineArgs": "bulk 50 4096 20000"
+    },
+    "Bulk 50, size 64, count 10,000": {
+      "commandName": "Project",
+      "commandLineArgs": "bulk 50 64 10000"
+    },
+    "Echo 10, size 4096, count 10,000": {
+      "commandName": "Project",
+      "commandLineArgs": "echo 10 4096 10000"
+    },
+    "Echo 50, size 4096, count 20,000": {
+      "commandName": "Project",
+      "commandLineArgs": "echo 50 4096 20000"
+    },
+    "Echo 50, size 64, count 10,000": {
+      "commandName": "Project",
+      "commandLineArgs": "echo 50 64 10000"
+    },
+    "Burn 10 bulk 100 4096 10,000": {
+      "commandName": "Project",
+      "commandLineArgs": "burn 10 bulk 100 4096 10000"
+    }
+  }
+}

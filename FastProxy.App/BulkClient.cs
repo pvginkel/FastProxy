@@ -13,8 +13,6 @@ namespace FastProxy.App
         private readonly int blockSize;
         private readonly int blockCount;
 
-        public event EventHandler Completed;
-
         public BulkClient(IPEndPoint endpoint, int blockSize, int blockCount)
             : base(endpoint)
         {
@@ -27,11 +25,6 @@ namespace FastProxy.App
             var socket = new BulkSocket(client, blockSize, blockCount);
             socket.Completed += (s, e) => OnCompleted();
             return socket;
-        }
-
-        protected virtual void OnCompleted()
-        {
-            Completed?.Invoke(this, EventArgs.Empty);
         }
     }
 }

@@ -15,8 +15,6 @@ namespace FastProxy.App
         private readonly int blockCount;
         private readonly byte[] block;
 
-        public event EventHandler Completed;
-
         public EchoClient(IPEndPoint endpoint, byte[] block, int blockCount)
             : base(endpoint)
         {
@@ -29,15 +27,9 @@ namespace FastProxy.App
             return new EchoSocket(this, client);
         }
 
-        protected virtual void OnCompleted()
-        {
-            Completed?.Invoke(this, EventArgs.Empty);
-        }
-
         private class EchoSocket : IFastSocket
         {
             private readonly EchoClient client;
-            private readonly byte[] buffer;
             private Socket socket;
             private SocketAsyncEventArgs sendEventArgs;
             private SocketAsyncEventArgs receiveEventArgs;
@@ -53,15 +45,15 @@ namespace FastProxy.App
 
                 remaining = client.blockCount;
 
-                buffer = new byte[client.block.Length];
-
                 sendEventArgs = new SocketAsyncEventArgs();
                 sendEventArgs.SetBuffer(client.block, 0, client.block.Length);
-                sendEventArgs.Completed += SendEventArgs_Completed;
+                sendEventArgs.Completed += (s, e) => EndSend();
+
+                var buffer = new byte[client.block.Length];
 
                 receiveEventArgs = new SocketAsyncEventArgs();
                 receiveEventArgs.SetBuffer(buffer, 0, buffer.Length);
-                receiveEventArgs.Completed += ReceiveEventArgs_Completed;
+                receiveEventArgs.Completed += (s, e) => EndReceive();
             }
 
             public void Start()
@@ -75,15 +67,8 @@ namespace FastProxy.App
                 if (eventArgs == null)
                     return;
 
-                if (!socket.SendAsync(eventArgs))
+                if (!socket.SendAsyncSuppressFlow(eventArgs))
                     EndSend();
-            }
-
-            private void SendEventArgs_Completed(object sender, SocketAsyncEventArgs e)
-            {
-                Debug.Assert(e.LastOperation == SocketAsyncOperation.Send);
-
-                EndSend();
             }
 
             private void EndSend()
@@ -97,15 +82,8 @@ namespace FastProxy.App
                 if (eventArgs == null)
                     return;
 
-                if (!socket.ReceiveAsync(eventArgs))
+                if (!socket.ReceiveAsyncSuppressFlow(eventArgs))
                     EndReceive();
-            }
-
-            private void ReceiveEventArgs_Completed(object sender, SocketAsyncEventArgs e)
-            {
-                Debug.Assert(e.LastOperation == SocketAsyncOperation.Receive);
-
-                EndReceive();
             }
 
             private void EndReceive()
@@ -154,6 +132,7 @@ namespace FastProxy.App
                 {
                     if (socket != null)
                     {
+                        socket.Shutdown(SocketShutdown.Both);
                         socket.Dispose();
                         socket = null;
                     }
