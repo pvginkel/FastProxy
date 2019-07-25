@@ -129,28 +129,12 @@ namespace FastProxy
         {
             if (!disposed)
             {
-                if (source != null)
-                {
-                    source.Shutdown(SocketShutdown.Both);
-                    source.Dispose();
-                    source = null;
-                }
-                if (target != null)
-                {
-                    target.Shutdown(SocketShutdown.Both);
-                    target.Dispose();
-                    target = null;
-                }
-                if (upstream != null)
-                {
-                    upstream.Dispose();
-                    upstream = null;
-                }
-                if (downstream != null)
-                {
-                    downstream.Dispose();
-                    downstream = null;
-                }
+                source?.Shutdown(SocketShutdown.Both);
+                target?.Shutdown(SocketShutdown.Both);
+                DisposeUtils.DisposeSafely(ref source);
+                DisposeUtils.DisposeSafely(ref target);
+                DisposeUtils.DisposeSafely(ref upstream);
+                DisposeUtils.DisposeSafely(ref upstream);
 
                 disposed = true;
             }

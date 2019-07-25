@@ -73,11 +73,7 @@ namespace FastProxy
                     }
                     pool.Clear();
 
-                    if (bufferManager != null)
-                    {
-                        bufferManager.Dispose();
-                        bufferManager = null;
-                    }
+                    DisposeUtils.DisposeSafely(ref bufferManager);
                 }
 
                 disposed = true;

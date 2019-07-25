@@ -108,11 +108,7 @@ namespace FastProxy.App
         {
             if (!disposed)
             {
-                if (proxy != null)
-                {
-                    proxy.Dispose();
-                    proxy = null;
-                }
+                DisposeUtils.DisposeSafely(ref proxy);
 
                 disposed = true;
             }

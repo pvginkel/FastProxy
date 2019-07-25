@@ -99,11 +99,7 @@ namespace FastProxy
             {
                 if (!disposed)
                 {
-                    if (eventArgs != null)
-                    {
-                        eventArgs.Dispose();
-                        eventArgs = null;
-                    }
+                    DisposeUtils.DisposeSafely(ref eventArgs);
 
                     disposed = true;
                 }

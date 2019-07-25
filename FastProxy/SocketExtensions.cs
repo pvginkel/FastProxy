@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace FastProxy
 {
-    public static class SocketExtensions
+    internal static class SocketExtensions
     {
         public static bool SendAsyncSuppressFlow(this Socket self, SocketAsyncEventArgs e)
         {

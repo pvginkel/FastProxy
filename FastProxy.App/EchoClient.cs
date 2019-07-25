@@ -128,22 +128,10 @@ namespace FastProxy.App
             {
                 if (!disposed)
                 {
-                    if (socket != null)
-                    {
-                        socket.Shutdown(SocketShutdown.Both);
-                        socket.Dispose();
-                        socket = null;
-                    }
-                    if (sendEventArgs != null)
-                    {
-                        sendEventArgs.Dispose();
-                        sendEventArgs = null;
-                    }
-                    if (receiveEventArgs != null)
-                    {
-                        receiveEventArgs.Dispose();
-                        receiveEventArgs = null;
-                    }
+                    socket?.Shutdown(SocketShutdown.Both);
+                    DisposeUtils.DisposeSafely(ref socket);
+                    DisposeUtils.DisposeSafely(ref sendEventArgs);
+                    DisposeUtils.DisposeSafely(ref receiveEventArgs);
 
                     disposed = true;
                 }

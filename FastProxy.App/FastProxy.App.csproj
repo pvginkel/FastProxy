@@ -6,6 +6,10 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\FastProxy\DisposeUtils.cs" Link="DisposeUtils.cs" />
+    <Compile Include="..\FastProxy\SocketExtensions.cs" Link="SocketExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\FastProxy\FastProxy.csproj" />
   </ItemGroup>
 </Project>

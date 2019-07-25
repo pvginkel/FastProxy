@@ -149,24 +149,12 @@ namespace FastProxy
         {
             if (!disposed)
             {
-                if (socket != null)
-                {
-                    socket.Dispose();
-                    socket = null;
-                }
-                if (acceptEventArgs != null)
-                {
-                    acceptEventArgs.Dispose();
-                    acceptEventArgs = null;
-                }
+                DisposeUtils.DisposeSafely(ref socket);
+                DisposeUtils.DisposeSafely(ref acceptEventArgs);
 
                 CloseClientsSafely();
 
-                if (eventArgsManager != null)
-                {
-                    eventArgsManager.Dispose();
-                    eventArgsManager = null;
-                }
+                DisposeUtils.DisposeSafely(ref eventArgsManager);
 
                 disposed = true;
             }
