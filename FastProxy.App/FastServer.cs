@@ -16,7 +16,7 @@ namespace FastProxy.App
         private readonly IPEndPoint endpoint;
         private Socket socket;
 
-        public IPEndPoint LocalEndPoint => (IPEndPoint)socket.LocalEndPoint;
+        public IPEndPoint Endpoint => (IPEndPoint)socket.LocalEndPoint;
 
         public event ExceptionEventHandler ExceptionOccured;
 

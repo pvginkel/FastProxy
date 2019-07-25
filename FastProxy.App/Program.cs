@@ -13,32 +13,28 @@ namespace FastProxy.App
     {
         public static void Main(string[] args)
         {
+            DebugListener.Setup();
+
             //RunEcho();
-
-            //for (int i = 0; i < 10; i++)
-            //{
-            //    RunEcho();
-            //}
-
-            //RunBulk();
 
             for (int i = 0; i < 10; i++)
             {
-                RunBulk();
+                RunEcho();
             }
+
+            //RunBulk(1);
+
+            //for (int i = 0; i < 10; i++)
+            //{
+            //    RunBulk();
+            //}
         }
-
-        private static void RunBulk()
+        private static void RunBulk(int clients = 10, int blockSize = 4096, int blockCount = 10_000)
         {
-            const int blockSize = 4096;
-            const int blockCount = 10_000;
-            //const int blockCount = 10;
-            const int clients = 10;
-
             var server = new BulkServer(new IPEndPoint(IPAddress.Loopback, 0), blockSize, blockCount);
             server.Start();
 
-            var proxy = new ProxyServer(new IPEndPoint(IPAddress.Loopback, 0), new Connector(server.LocalEndPoint));
+            var proxy = new ProxyServer(new IPEndPoint(IPAddress.Loopback, 0), new Connector(server.Endpoint));
             proxy.ExceptionOccured += (s, e) => Console.WriteLine($"EXCEPTION: {e.Exception.Message} ({e.Exception.GetType().FullName})");
             proxy.Start();
 
@@ -103,23 +99,27 @@ namespace FastProxy.App
                 Console.WriteLine("CLOSED");
             }
 
-            public OperationResult DataReceived(ref ArraySegment<byte> buffer, Direction direction)
+            public OperationResult DataReceived(int bytesTransferred, Direction direction)
             {
                 //Console.WriteLine($"RECEIVED: direction {direction}, buffer {buffer.Count}");
                 return OperationResult.Continue;
             }
         }
 
-        private static void RunEcho()
+        private static void RunEcho(int blockCount = 20_000)
         {
             var buffer = new byte[4096];
-            var blockCount = 20_000;
 
             new Random().NextBytes(buffer);
 
-            var server = new EchoServer(new IPEndPoint(0, 0));
+            var server = new EchoServer(new IPEndPoint(IPAddress.Loopback, 0));
             server.Start();
-            var client = new EchoClient(new IPEndPoint(IPAddress.Loopback, server.LocalEndPoint.Port), buffer, blockCount);
+
+            var proxy = new ProxyServer(new IPEndPoint(IPAddress.Loopback, 0), new Connector(server.Endpoint));
+            proxy.ExceptionOccured += (s, e) => Console.WriteLine($"EXCEPTION: {e.Exception.Message} ({e.Exception.GetType().FullName})");
+            proxy.Start();
+
+            var client = new EchoClient(proxy.Endpoint, buffer, blockCount);
 
             var stopwatch = Stopwatch.StartNew();
 

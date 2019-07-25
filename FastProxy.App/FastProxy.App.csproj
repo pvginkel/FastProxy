@@ -48,12 +48,12 @@
     <Compile Include="BulkClient.cs" />
     <Compile Include="BulkServer.cs" />
     <Compile Include="BulkSocket.cs" />
+    <Compile Include="DebugListener.cs" />
     <Compile Include="EchoClient.cs" />
     <Compile Include="EchoServer.cs" />
     <Compile Include="ExceptionEventHandler.cs" />
     <Compile Include="FastClient.cs" />
     <Compile Include="FastServer.cs" />
-    <Compile Include="FastSocket.cs" />
     <Compile Include="IFastSocket.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

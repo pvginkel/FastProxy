@@ -43,11 +43,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BufferManager.cs" />
     <Compile Include="DelegateListener.cs" />
     <Compile Include="Direction.cs" />
+    <Compile Include="EventArgsManager.cs" />
+    <Compile Include="EventArgsPair.cs" />
     <Compile Include="ExceptionEventHandler.cs" />
     <Compile Include="IConnector.cs" />
     <Compile Include="IListener.cs" />
+    <Compile Include="Listeners.cs" />
     <Compile Include="OperationResult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProxyClient.cs" />

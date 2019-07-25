@@ -25,9 +25,9 @@ namespace FastProxy
             parent.Closed();
         }
 
-        public virtual OperationResult DataReceived(ref ArraySegment<byte> buffer, Direction direction)
+        public virtual OperationResult DataReceived(int bytesTransferred, Direction direction)
         {
-            return parent.DataReceived(ref buffer, direction);
+            return parent.DataReceived(bytesTransferred, direction);
         }
     }
 }

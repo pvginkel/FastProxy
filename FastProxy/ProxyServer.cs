@@ -21,6 +21,7 @@ namespace FastProxy
         private SocketAsyncEventArgs acceptEventArgs;
         private readonly HashSet<ProxyClient> clients = new HashSet<ProxyClient>();
         private readonly object syncRoot = new object();
+        private EventArgsManager eventArgsManager;
         private bool disposed;
 
         public IPEndPoint Endpoint => (IPEndPoint)socket.LocalEndPoint;
@@ -33,6 +34,7 @@ namespace FastProxy
             this.connector = connector;
             this.backlog = backlog;
             this.bufferSize = bufferSize;
+            this.eventArgsManager = new EventArgsManager(bufferSize);
         }
 
         public void Start()
@@ -70,7 +72,7 @@ namespace FastProxy
                 {
                     if (connector.Connect(out var endpoint, out var listener))
                     {
-                        var proxyClient = new ProxyClient(client, endpoint, listener, bufferSize);
+                        var proxyClient = new ProxyClient(client, endpoint, listener, bufferSize, eventArgsManager);
 
                         lock (syncRoot)
                         {
@@ -148,6 +150,12 @@ namespace FastProxy
                 }
 
                 CloseClientsSafely();
+
+                if (eventArgsManager != null)
+                {
+                    eventArgsManager.Dispose();
+                    eventArgsManager = null;
+                }
 
                 disposed = true;
             }

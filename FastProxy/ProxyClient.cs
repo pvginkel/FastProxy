@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FastProxy
@@ -15,20 +16,23 @@ namespace FastProxy
         private Socket target;
         private Channel upstream;
         private Channel downstream;
+        private volatile int channelsCompleted;
         private readonly IPEndPoint endpoint;
         private readonly IListener listener;
         private readonly int bufferSize;
+        private readonly EventArgsManager eventArgsManager;
         private bool disposed;
 
         public event ExceptionEventHandler ExceptionOccured;
         public event EventHandler Closed;
 
-        public ProxyClient(Socket client, IPEndPoint endpoint, IListener listener, int bufferSize)
+        public ProxyClient(Socket client, IPEndPoint endpoint, IListener listener, int bufferSize, EventArgsManager eventArgsManager)
         {
             this.source = client;
             this.endpoint = endpoint;
-            this.listener = listener;
+            this.listener = listener ?? Listeners.Sink;
             this.bufferSize = bufferSize;
+            this.eventArgsManager = eventArgsManager;
         }
 
         public void Start()
@@ -65,14 +69,12 @@ namespace FastProxy
                     source.LingerState = new LingerOption(false, 0);
                     target.LingerState = new LingerOption(false, 0);
 
-                    listener?.Connected();
+                    listener.Connected();
 
-                    // Reuse the connect event args.
+                    eventArgs.Dispose();
 
-                    eventArgs.Completed -= ConnectEventArgs_Completed;
-
-                    upstream = new Channel(Direction.Upstream, target, source, this, eventArgs);
-                    downstream = new Channel(Direction.Downstream, source, target, this, null);
+                    upstream = new Channel(Direction.Upstream, target, source, this);
+                    downstream = new Channel(Direction.Downstream, source, target, this);
                 }
                 catch (Exception ex)
                 {
@@ -99,7 +101,7 @@ namespace FastProxy
 
             try
             {
-                listener?.Closed();
+                listener.Closed();
             }
             catch (Exception ex)
             {
@@ -154,26 +156,34 @@ namespace FastProxy
 
         private class Channel : IDisposable
         {
+            [Flags]
+            private enum State
+            {
+                None = 0,
+                Sending = 1,
+                DataReceived = 2,
+                ReceiveCompleted = 4,
+                Completed = 8
+            }
+
             private readonly Direction direction;
             private readonly Socket source;
             private readonly Socket target;
             private readonly ProxyClient client;
-            private SocketAsyncEventArgs eventArgs;
+            private EventArgsPair eventArgs;
+            private volatile int state;
             private bool disposed;
-            private readonly byte[] buffer;
 
-            public Channel(Direction direction, Socket source, Socket target, ProxyClient client, SocketAsyncEventArgs eventArgs)
+            public Channel(Direction direction, Socket source, Socket target, ProxyClient client)
             {
                 this.direction = direction;
                 this.source = source;
                 this.target = target;
                 this.client = client;
 
-                this.buffer = new byte[client.bufferSize];
-
-                this.eventArgs = eventArgs ?? new SocketAsyncEventArgs();
-                this.eventArgs.SetBuffer(buffer, 0, buffer.Length);
-                this.eventArgs.Completed += EventArgs_Completed;
+                eventArgs = client.eventArgsManager.Take();
+                eventArgs.Send.Completed += SendEventArgs_Completed;
+                eventArgs.Receive.Completed += ReceiveEventArgs_Completed;
 
                 StartReceive();
             }
@@ -186,7 +196,18 @@ namespace FastProxy
 
                 try
                 {
-                    if (!source.ReceiveAsync(eventArgs))
+                    // The buffer associated with the event args is twice
+                    // client.bufferSize. Ever time we start a receive, we
+                    // switch between the base offset, and the base offset
+                    // offset by client.bufferSize.
+
+                    int offset = eventArgs.Receive.Offset != eventArgs.BufferOffset
+                        ? eventArgs.BufferOffset
+                        : eventArgs.BufferOffset + client.bufferSize;
+
+                    eventArgs.Receive.SetBuffer(offset, client.bufferSize);
+
+                    if (!source.ReceiveAsync(eventArgs.Receive))
                         EndReceive();
                 }
                 catch (Exception ex)
@@ -195,37 +216,11 @@ namespace FastProxy
                 }
             }
 
-            private void EventArgs_Completed(object sender, SocketAsyncEventArgs e)
+            private void ReceiveEventArgs_Completed(object sender, SocketAsyncEventArgs e)
             {
-                switch (e.LastOperation)
-                {
-                    case SocketAsyncOperation.Send:
-                        EndSend();
-                        break;
-                    case SocketAsyncOperation.Receive:
-                        EndReceive();
-                        break;
-                    default:
-                        throw new InvalidOperationException();
-                }
-            }
+                Debug.Assert(e.LastOperation == SocketAsyncOperation.Receive);
 
-            private void EndSend()
-            {
-                var eventArgs = this.eventArgs;
-                if (eventArgs == null)
-                    return;
-
-                try
-                {
-                    eventArgs.SetBuffer(buffer, 0, buffer.Length);
-
-                    StartReceive();
-                }
-                catch (Exception ex)
-                {
-                    client.CloseSafely(ex);
-                }
+                EndReceive();
             }
 
             private void EndReceive()
@@ -234,27 +229,46 @@ namespace FastProxy
                 if (eventArgs == null)
                     return;
 
+                var receiveCompleted = eventArgs.Receive.BytesTransferred == 0;
+
+                UpdateStateDataReceived(receiveCompleted, out bool completed, out bool sending);
+                if (completed)
+                    CompleteChannel();
+                else if (!sending && !receiveCompleted)
+                    DataReceived();
+            }
+
+            private void DataReceived()
+            {
+                var eventArgs = this.eventArgs;
+                if (eventArgs == null)
+                    return;
+
                 try
                 {
-                    if (eventArgs.BytesTransferred == 0)
-                    {
-                        client.CloseSafely();
-                        return;
-                    }
+                    int offset = eventArgs.Receive.Offset;
+                    var bytesTransferred = eventArgs.Receive.BytesTransferred;
 
-                    var buffer = new ArraySegment<byte>(eventArgs.Buffer, 0, eventArgs.BytesTransferred);
+                    var result = client.listener.DataReceived(bytesTransferred, direction);
 
-                    var result = client.listener?.DataReceived(ref buffer, direction);
-
-                    switch (result.GetValueOrDefault(OperationResult.Continue))
+                    switch (result)
                     {
                         case OperationResult.Continue:
-                            eventArgs.SetBuffer(buffer.Array, buffer.Offset, buffer.Count);
-                            StartSend();
+                            StartSend(offset, bytesTransferred);
+                            StartReceive();
                             break;
 
                         case OperationResult.CloseClient:
-                            client.CloseSafely();
+                            // The CloseClient operation result is implemented by pretending that
+                            // we've finished receiving data. This should properly close both channels.
+                            // If there's an outstanding send, that will pick up the final close.
+
+                            client.upstream.UpdateStateDataReceived(true, out bool completed, out _);
+                            if (completed)
+                                client.upstream.CompleteChannel();
+                            client.downstream.UpdateStateDataReceived(true, out completed, out _);
+                            if (completed)
+                                client.downstream.CompleteChannel();
                             break;
 
                         default:
@@ -267,7 +281,7 @@ namespace FastProxy
                 }
             }
 
-            private void StartSend()
+            private void StartSend(int offset, int count)
             {
                 var eventArgs = this.eventArgs;
                 if (eventArgs == null)
@@ -275,13 +289,127 @@ namespace FastProxy
 
                 try
                 {
-                    if (!target.SendAsync(eventArgs))
+                    eventArgs.Send.SetBuffer(offset, count);
+
+                    UpdateStateStartSending();
+
+                    if (!target.SendAsync(eventArgs.Send))
                         EndSend();
                 }
                 catch (Exception ex)
                 {
                     client.CloseSafely(ex);
                 }
+            }
+
+            private void SendEventArgs_Completed(object sender, SocketAsyncEventArgs e)
+            {
+                Debug.Assert(e.LastOperation == SocketAsyncOperation.Send);
+
+                EndSend();
+            }
+
+            private void EndSend()
+            {
+                try
+                {
+                    UpdateStateSendingComplete(out bool dataReceived, out bool completed);
+                    if (completed)
+                        CompleteChannel();
+                    else if (dataReceived)
+                        DataReceived();
+                }
+                catch (Exception ex)
+                {
+                    client.CloseSafely(ex);
+                }
+            }
+
+            private void UpdateStateSendingComplete(out bool dataReceived, out bool completed)
+            {
+                State oldState;
+                State newState;
+
+                do
+                {
+                    oldState = newState = (State)state;
+                    Debug.Assert((oldState & State.Sending) != 0);
+                    newState &= ~(State.Sending | State.DataReceived);
+                    dataReceived = (oldState & State.DataReceived) != 0;
+                    bool receiveCompleted = (oldState & State.ReceiveCompleted) != 0;
+                    completed = false;
+                    if (receiveCompleted)
+                    {
+                        Debug.Assert((oldState & State.Completed) == 0);
+                        newState |= State.Completed;
+                        completed = true;
+                    }
+                }
+                while (Interlocked.CompareExchange(ref state, (int)newState, (int)oldState) != (int)oldState);
+            }
+
+            private void UpdateStateStartSending()
+            {
+                State oldState;
+                State newState;
+
+                do
+                {
+                    oldState = newState = (State)state;
+                    Debug.Assert((oldState & State.Sending) == 0);
+                    newState |= State.Sending;
+                }
+                while (Interlocked.CompareExchange(ref state, (int)newState, (int)oldState) != (int)oldState);
+            }
+
+            private void UpdateStateDataReceived(bool receiveCompleted, out bool completed, out bool sending)
+            {
+                State oldState;
+                State newState;
+
+                do
+                {
+                    oldState = newState = (State)state;
+                    Debug.Assert((oldState & State.DataReceived) == 0);
+                    sending = (oldState & State.Sending) != 0;
+                    completed = false;
+                    if (receiveCompleted)
+                    {
+                        newState |= State.ReceiveCompleted;
+                        if (!sending)
+                        {
+                            Debug.Assert((oldState & State.Completed) == 0);
+                            newState |= State.Completed;
+                            completed = true;
+                        }
+                    }
+                    if (sending && !completed)
+                        newState |= State.DataReceived;
+                }
+                while (Interlocked.CompareExchange(ref state, (int)newState, (int)oldState) != (int)oldState);
+            }
+
+            private void CompleteChannel()
+            {
+                int oldChannelsCompleted;
+                int newChannelsCompleted;
+                int mask = 1 << (int)direction;
+                bool wasClosed;
+                bool otherClosed;
+
+                do
+                {
+                    oldChannelsCompleted = newChannelsCompleted = client.channelsCompleted;
+
+                    wasClosed = (oldChannelsCompleted & mask) != 0;
+                    otherClosed = (oldChannelsCompleted & ~mask) != 0;
+
+                    newChannelsCompleted |= mask;
+                }
+                while (Interlocked.CompareExchange(ref client.channelsCompleted, newChannelsCompleted, oldChannelsCompleted) != oldChannelsCompleted);
+
+                if (!wasClosed && otherClosed)
+                    client.CloseSafely();
             }
 
             public void Dispose()
@@ -291,7 +419,12 @@ namespace FastProxy
                     var eventArgs = this.eventArgs;
                     this.eventArgs = null;
 
-                    eventArgs?.Dispose();
+                    if (eventArgs != null)
+                    {
+                        eventArgs.Send.Completed -= SendEventArgs_Completed;
+                        eventArgs.Receive.Completed -= ReceiveEventArgs_Completed;
+                        client.eventArgsManager.Return(eventArgs);
+                    }
 
                     disposed = true;
                 }

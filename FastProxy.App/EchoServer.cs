@@ -34,6 +34,7 @@ namespace FastProxy.App
                 this.socket = socket;
 
                 eventArgs = new SocketAsyncEventArgs();
+                eventArgs.SetBuffer(buffer, 0, buffer.Length);
                 eventArgs.Completed += EventArgs_Completed;
             }
 
@@ -61,7 +62,7 @@ namespace FastProxy.App
                 if (eventArgs == null)
                     return;
 
-                eventArgs.SetBuffer(buffer, 0, buffer.Length);
+                eventArgs.SetBuffer(0, buffer.Length);
 
                 if (!socket.ReceiveAsync(eventArgs))
                     EndReceive();
@@ -80,7 +81,7 @@ namespace FastProxy.App
                     return;
                 }
 
-                eventArgs.SetBuffer(buffer, 0, bytesTransferred);
+                eventArgs.SetBuffer(0, bytesTransferred);
 
                 if (!socket.SendAsync(eventArgs))
                     EndSend();

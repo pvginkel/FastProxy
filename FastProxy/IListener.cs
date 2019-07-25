@@ -10,6 +10,6 @@ namespace FastProxy
     {
         void Connected();
         void Closed();
-        OperationResult DataReceived(ref ArraySegment<byte> buffer, Direction direction);
+        OperationResult DataReceived(int bytesTransferred, Direction direction);
     }
 }

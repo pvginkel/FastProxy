@@ -39,7 +39,8 @@ namespace FastProxy.App
             private readonly EchoClient client;
             private readonly byte[] buffer;
             private Socket socket;
-            private SocketAsyncEventArgs eventArgs;
+            private SocketAsyncEventArgs sendEventArgs;
+            private SocketAsyncEventArgs receiveEventArgs;
             private int remaining;
             private bool disposed;
 
@@ -54,8 +55,13 @@ namespace FastProxy.App
 
                 buffer = new byte[client.block.Length];
 
-                eventArgs = new SocketAsyncEventArgs();
-                eventArgs.Completed += EventArgs_Completed;
+                sendEventArgs = new SocketAsyncEventArgs();
+                sendEventArgs.SetBuffer(client.block, 0, client.block.Length);
+                sendEventArgs.Completed += SendEventArgs_Completed;
+
+                receiveEventArgs = new SocketAsyncEventArgs();
+                receiveEventArgs.SetBuffer(buffer, 0, buffer.Length);
+                receiveEventArgs.Completed += ReceiveEventArgs_Completed;
             }
 
             public void Start()
@@ -63,29 +69,21 @@ namespace FastProxy.App
                 StartSend();
             }
 
-            private void EventArgs_Completed(object sender, SocketAsyncEventArgs e)
-            {
-                switch (e.LastOperation)
-                {
-                    case SocketAsyncOperation.Send:
-                        EndSend();
-                        break;
-                    case SocketAsyncOperation.Receive:
-                        EndReceive();
-                        break;
-                }
-            }
-
             private void StartSend()
             {
-                var eventArgs = this.eventArgs;
+                var eventArgs = sendEventArgs;
                 if (eventArgs == null)
                     return;
 
-                eventArgs.SetBuffer(client.block, 0, client.block.Length);
-
                 if (!socket.SendAsync(eventArgs))
                     EndSend();
+            }
+
+            private void SendEventArgs_Completed(object sender, SocketAsyncEventArgs e)
+            {
+                Debug.Assert(e.LastOperation == SocketAsyncOperation.Send);
+
+                EndSend();
             }
 
             private void EndSend()
@@ -95,19 +93,24 @@ namespace FastProxy.App
 
             private void StartReceive()
             {
-                var eventArgs = this.eventArgs;
+                var eventArgs = receiveEventArgs;
                 if (eventArgs == null)
                     return;
-
-                eventArgs.SetBuffer(buffer, 0, buffer.Length);
 
                 if (!socket.ReceiveAsync(eventArgs))
                     EndReceive();
             }
 
+            private void ReceiveEventArgs_Completed(object sender, SocketAsyncEventArgs e)
+            {
+                Debug.Assert(e.LastOperation == SocketAsyncOperation.Receive);
+
+                EndReceive();
+            }
+
             private void EndReceive()
             {
-                var eventArgs = this.eventArgs;
+                var eventArgs = receiveEventArgs;
                 if (eventArgs == null)
                     return;
 
@@ -154,10 +157,15 @@ namespace FastProxy.App
                         socket.Dispose();
                         socket = null;
                     }
-                    if (eventArgs != null)
+                    if (sendEventArgs != null)
                     {
-                        eventArgs.Dispose();
-                        eventArgs = null;
+                        sendEventArgs.Dispose();
+                        sendEventArgs = null;
+                    }
+                    if (receiveEventArgs != null)
+                    {
+                        receiveEventArgs.Dispose();
+                        receiveEventArgs = null;
                     }
 
                     disposed = true;
