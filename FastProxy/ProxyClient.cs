@@ -184,38 +184,47 @@ namespace FastProxy
 
             private void StartReceive()
             {
-                var eventArgs = this.eventArgs;
-                if (eventArgs == null)
-                    return;
-
-                try
+                while (true)
                 {
-                    // The buffer associated with the event args is twice
-                    // client.bufferSize. Ever time we start a receive, we
-                    // switch between the base offset, and the base offset
-                    // offset by client.bufferSize.
-
-                    int offset = eventArgs.Receive.Offset != eventArgs.BufferOffset
-                        ? eventArgs.BufferOffset
-                        : eventArgs.BufferOffset + client.bufferSize;
-
-                    eventArgs.Receive.SetBuffer(offset, client.bufferSize);
-
-                    UpdateStateStartReceiving(out bool completed, out bool aborted);
-
-                    if (aborted)
-                    {
-                        if (completed)
-                            CompleteChannel();
+                    var eventArgs = this.eventArgs;
+                    if (eventArgs == null)
                         return;
+
+                    try
+                    {
+                        // The buffer associated with the event args is twice
+                        // client.bufferSize. Ever time we start a receive, we
+                        // switch between the base offset, and the base offset
+                        // offset by client.bufferSize.
+
+                        int offset = eventArgs.Receive.Offset != eventArgs.BufferOffset
+                            ? eventArgs.BufferOffset
+                            : eventArgs.BufferOffset + client.bufferSize;
+
+                        eventArgs.Receive.SetBuffer(offset, client.bufferSize);
+
+                        UpdateStateStartReceiving(out bool completed, out bool aborted);
+
+                        if (aborted)
+                        {
+                            if (completed)
+                                CompleteChannel();
+                            return;
+                        }
+
+                        if (!source.ReceiveAsyncSuppressFlow(eventArgs.Receive))
+                        {
+                            bool again = EndReceive(true);
+                            if (again)
+                                continue;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        client.CloseSafely(ex);
                     }
 
-                    if (!source.ReceiveAsyncSuppressFlow(eventArgs.Receive))
-                        EndReceive();
-                }
-                catch (Exception ex)
-                {
-                    client.CloseSafely(ex);
+                    break;
                 }
             }
 
@@ -224,11 +233,11 @@ namespace FastProxy
                 EndReceive();
             }
 
-            private void EndReceive()
+            private bool EndReceive(bool receiving = false)
             {
                 var eventArgs = this.eventArgs;
                 if (eventArgs == null)
-                    return;
+                    return false;
 
                 var receiveCompleted = eventArgs.Receive.BytesTransferred == 0;
 
@@ -237,14 +246,16 @@ namespace FastProxy
                 if (completed)
                     CompleteChannel();
                 else if (!aborted && !sending && !receiveCompleted)
-                    DataReceived();
+                    return DataReceived(receiving);
+
+                return false;
             }
 
-            private void DataReceived()
+            private bool DataReceived(bool receiving = false)
             {
                 var eventArgs = this.eventArgs;
                 if (eventArgs == null)
-                    return;
+                    return false;
 
                 try
                 {
@@ -267,13 +278,15 @@ namespace FastProxy
                     }
                     else
                     {
-                        CompleteOperation(outcome, offset, bytesTransferred);
+                        return CompleteOperation(outcome, offset, bytesTransferred, receiving);
                     }
                 }
                 catch (Exception ex)
                 {
                     client.CloseSafely(ex);
                 }
+
+                return false;
             }
 
             private void OperationCallback(OperationOutcome outcome)
@@ -295,12 +308,14 @@ namespace FastProxy
                 }
             }
 
-            private void CompleteOperation(OperationOutcome outcome, int offset, int bytesTransferred)
+            private bool CompleteOperation(OperationOutcome outcome, int offset, int bytesTransferred, bool receiving = false)
             {
                 switch (outcome)
                 {
                     case OperationOutcome.Continue:
                         StartSend(offset, bytesTransferred);
+                        if (receiving)
+                            return true;
                         StartReceive();
                         break;
 
@@ -318,6 +333,8 @@ namespace FastProxy
                     default:
                         throw new InvalidOperationException();
                 }
+
+                return false;
 
                 void AbortChannel(Channel channel)
                 {
