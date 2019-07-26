@@ -453,12 +453,9 @@ namespace FastProxy
                         if (receiveCompleted || (oldState & State.DataReceived) != 0)
                         {
                             newState |= State.ReceiveCompleted;
-                            if (!sending)
-                            {
-                                Debug.Assert((oldState & State.Completed) == 0);
+                            completed = !sending && (oldState & State.Completed) == 0;
+                            if (completed)
                                 newState |= State.Completed;
-                                completed = true;
-                            }
                         }
                         if (sending && !completed)
                             newState |= State.DataReceived;
@@ -524,12 +521,9 @@ namespace FastProxy
                         newState &= ~State.DataReceived;
                         dataReceived = (oldState & State.DataReceived) != 0;
                         bool receiveCompleted = (oldState & State.ReceiveCompleted) != 0;
-                        if (receiveCompleted)
-                        {
-                            Debug.Assert((oldState & State.Completed) == 0);
+                        completed = receiveCompleted && (oldState & State.Completed) == 0;
+                        if (completed)
                             newState |= State.Completed;
-                            completed = true;
-                        }
                     }
                 }
                 while (Interlocked.CompareExchange(ref state, (int)newState, (int)oldState) != (int)oldState);
@@ -548,13 +542,10 @@ namespace FastProxy
 
                     bool sending = (oldState & State.Sending) != 0;
                     bool receiving = (oldState & State.Receiving) != 0;
-                    completed = false;
 
-                    if (!(sending || receiving) && (oldState & State.Completed) == 0)
-                    {
-                        completed = true;
+                    completed = !(sending || receiving) && (oldState & State.Completed) == 0;
+                    if (completed)
                         newState |= State.Completed;
-                    }
                 }
                 while (Interlocked.CompareExchange(ref state, (int)newState, (int)oldState) != (int)oldState);
             }
