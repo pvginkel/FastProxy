@@ -5,6 +5,8 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using FastProxy.Listeners;
+using FastProxy.Listeners.Chaos;
 
 namespace FastProxy.App
 {
@@ -22,7 +24,7 @@ namespace FastProxy.App
         private readonly int count;
         private readonly Func<IPEndPoint, FastServer> serverFactory;
         private readonly Func<IPEndPoint, FastClient> clientFactory;
-        private readonly TransferredListener listener = new TransferredListener();
+        private readonly BandwidthListener listener = new BandwidthListener(SinkListener.Instance);
         private int started;
         private int completed;
         private int running;
@@ -43,7 +45,32 @@ namespace FastProxy.App
             var server = serverFactory(new IPEndPoint(IPAddress.Loopback, 0));
             server.Start();
 
-            proxy = new ProxyServer(new IPEndPoint(IPAddress.Loopback, 0), new Connector(server.Endpoint, listener));
+            // Throttle.
+            //var listener = new ThrottlingListener(this.listener, 1024 * 1024 * 20);
+
+            IConnector connector = new Connector(server.Endpoint, listener);
+
+            // Chaos.
+            //var chaosConfiguration = new ChaosConfiguration
+            //{
+            //    Reject =
+            //    {
+            //        Percentage = 0.5
+            //    },
+            //    Abort =
+            //    {
+            //        Percentage = 1,
+            //        UpstreamBytes = new Range<long>(0, 1024 * 1024 * 10),
+            //        DownstreamBytes = new Range<long>(0, 1024 * 1024 * 10)
+            //    }
+            //};
+            //var chaosConnector = new ChaosConnector(chaosConfiguration, connector);
+            ////chaosConnector.Rejected += (s, e) => Console.WriteLine("REJECTED");
+            ////chaosConnector.Aborted += (s, e) => Console.WriteLine($"ABORTED reason {e.Reason}, upstream {e.UpstreamTransferred}, downstream {e.DownstreamTransferred}");
+
+            //connector = chaosConnector;
+
+            proxy = new ProxyServer(new IPEndPoint(IPAddress.Loopback, 0), connector);
             proxy.ExceptionOccured += (s, e) => Console.WriteLine($"EXCEPTION: {e.Exception.Message} ({e.Exception.GetType().FullName})");
             proxy.Start();
 
@@ -99,9 +126,10 @@ namespace FastProxy.App
 
         private void PrintStatus()
         {
-            double mbPerSecond = listener.GetAverage() / (1024 * 1024);
+            double upstreamMb = (double)listener.AverageUpstream / (1024 * 1024);
+            double downstreamMb = (double)listener.AverageDownstream / (1024 * 1024);
 
-            Console.WriteLine($"MB per second: {mbPerSecond:0.00}, completed {completed}, running {running}");
+            Console.WriteLine($"Upstream {upstreamMb:0.00} mb/s, downstream {downstreamMb:0.00} mb/s, completed {completed}, running {running}");
         }
 
         public void Dispose()

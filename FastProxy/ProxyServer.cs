@@ -55,6 +55,10 @@ namespace FastProxy
 
             try
             {
+                var socket = this.socket;
+                if (socket == null)
+                    return;
+
                 if (!socket.AcceptAsync(acceptEventArgs))
                     EndAccept();
             }
@@ -96,7 +100,6 @@ namespace FastProxy
                     }
                     else
                     {
-                        client.Shutdown(SocketShutdown.Both);
                         client.Dispose();
                     }
                 }
@@ -117,10 +120,7 @@ namespace FastProxy
             }
         }
 
-        protected virtual void OnExceptionOccured(ExceptionEventArgs e)
-        {
-            ExceptionOccured?.Invoke(this, e);
-        }
+        protected virtual void OnExceptionOccured(ExceptionEventArgs e) => ExceptionOccured?.Invoke(this, e);
 
         private void CloseClientsSafely()
         {

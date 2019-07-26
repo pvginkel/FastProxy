@@ -27,6 +27,18 @@
     "Loop 10 bulk 100 4096 10,000": {
       "commandName": "Project",
       "commandLineArgs": "loop 10 bulk 100 4096 10000"
+    },
+    "Loop 100 bulk 10 4096 10,000": {
+      "commandName": "Project",
+      "commandLineArgs": "loop 100 bulk 10 4096 10000"
+    },
+    "Loop 1,000 bulk 100 4096 10,000": {
+      "commandName": "Project",
+      "commandLineArgs": "loop 1000 bulk 100 4096 10000"
+    },
+    "Loop 10,000 bulk 1 4096 10,000": {
+      "commandName": "Project",
+      "commandLineArgs": "loop 10000 bulk 1 4096 10000"
     }
   }
 }

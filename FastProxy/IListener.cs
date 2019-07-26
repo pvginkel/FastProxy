@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FastProxy
 {
-    public interface IListener
+    public interface IListener : IDisposable
     {
         void Connected();
         void Closed();

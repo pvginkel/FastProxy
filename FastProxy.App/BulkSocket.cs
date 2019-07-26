@@ -47,7 +47,7 @@ namespace FastProxy.App
             if (eventArgs == null)
                 return;
 
-            do
+            while (true)
             {
                 lock (syncRoot)
                 {
@@ -63,8 +63,14 @@ namespace FastProxy.App
 
                     blockCount--;
                 }
+
+                var socket = this.socket;
+                if (socket == null)
+                    break;
+
+                if (socket.SendAsyncSuppressFlow(eventArgs))
+                    break;
             }
-            while (!socket.SendAsyncSuppressFlow(eventArgs));
         }
 
         private void EndSend()
@@ -84,11 +90,9 @@ namespace FastProxy.App
 
         private void EndReceive()
         {
-            SocketAsyncEventArgs eventArgs;
-
-            do
+            while (true)
             {
-                eventArgs = receiveEventArgs;
+                var eventArgs = receiveEventArgs;
                 if (eventArgs == null)
                     return;
 
@@ -112,8 +116,14 @@ namespace FastProxy.App
                         return;
                     }
                 }
+
+                var socket = this.socket;
+                if (socket == null)
+                    break;
+
+                if (socket.ReceiveAsyncSuppressFlow(eventArgs))
+                    break;
             }
-            while (!socket.ReceiveAsyncSuppressFlow(eventArgs));
         }
 
         private void Close()

@@ -17,6 +17,10 @@ namespace FastProxy
             {
                 return self.SendAsync(e);
             }
+            catch (ObjectDisposedException)
+            {
+                return true;
+            }
             finally
             {
                 control.Undo();
@@ -29,6 +33,10 @@ namespace FastProxy
             try
             {
                 return self.ReceiveAsync(e);
+            }
+            catch (ObjectDisposedException)
+            {
+                return true;
             }
             finally
             {

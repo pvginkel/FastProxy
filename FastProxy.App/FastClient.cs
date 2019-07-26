@@ -25,12 +25,19 @@ namespace FastProxy.App
 
         public void Start()
         {
-            var client = new Socket(endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            client.Connect(endpoint);
+            try
+            {
+                var client = new Socket(endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                client.Connect(endpoint);
 
-            socket = CreateSocket(client);
-            socket.ExceptionOccured += (s, e) => OnExceptionOccured(e);
-            socket.Start();
+                socket = CreateSocket(client);
+                socket.ExceptionOccured += (s, e) => OnExceptionOccured(e);
+                socket.Start();
+            }
+            catch (Exception ex)
+            {
+                OnExceptionOccured(new ExceptionEventArgs(ex));
+            }
         }
 
         protected virtual void OnCompleted() => Completed?.Invoke(this, EventArgs.Empty);
