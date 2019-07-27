@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FastProxy.App
+namespace FastProxy.TestSupport
 {
     public class ExceptionEventArgs : EventArgs
     {

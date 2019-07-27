@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FastProxy.App
+namespace FastProxy.TestSupport
 {
-    internal interface IFastSocket : IDisposable
+    public interface IFastSocket : IDisposable
     {
         event ExceptionEventHandler ExceptionOccured;
 

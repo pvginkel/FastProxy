@@ -5,9 +5,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FastProxy.App
+namespace FastProxy.TestSupport
 {
-    internal class BulkSocket : IFastSocket
+    public class BulkSocket : IFastSocket
     {
         private Socket socket;
         private SocketAsyncEventArgs sendEventArgs;

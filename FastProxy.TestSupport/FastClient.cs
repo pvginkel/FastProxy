@@ -6,9 +6,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FastProxy.App
+namespace FastProxy.TestSupport
 {
-    internal abstract class FastClient
+    public abstract class FastClient
     {
         private readonly IPEndPoint endpoint;
         private IFastSocket socket;

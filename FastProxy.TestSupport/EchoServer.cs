@@ -6,9 +6,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FastProxy.App
+namespace FastProxy.TestSupport
 {
-    internal class EchoServer : FastServer
+    public class EchoServer : FastServer
     {
         public EchoServer(IPEndPoint endpoint, int backlog = DefaultBacklog)
             : base(endpoint, backlog)

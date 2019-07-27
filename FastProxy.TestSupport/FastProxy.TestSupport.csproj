@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net461;netcoreapp2.2</TargetFrameworks>
+    <TargetFrameworks>net461;netstandard2.0</TargetFrameworks>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\FastProxy\DisposeUtils.cs" Link="DisposeUtils.cs" />
+    <Compile Include="..\FastProxy\SocketExtensions.cs" Link="SocketExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FastProxy.TestSupport\FastProxy.TestSupport.csproj" />
+    <ProjectReference Include="..\FastProxy\FastProxy.csproj" />
   </ItemGroup>
 </Project>

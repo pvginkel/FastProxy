@@ -3,14 +3,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29102.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastProxy", "FastProxy\FastProxy.csproj", "{BAB2A8C8-F998-4CAA-8622-5F7F7D331F8F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FastProxy", "FastProxy\FastProxy.csproj", "{BAB2A8C8-F998-4CAA-8622-5F7F7D331F8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastProxy.App", "FastProxy.App\FastProxy.App.csproj", "{C5B00333-58E7-4DCE-B722-607FD48441A7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FastProxy.App", "FastProxy.App\FastProxy.App.csproj", "{C5B00333-58E7-4DCE-B722-607FD48441A7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{05071130-910B-49AE-A1D2-731B6E52FAD0}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastProxy.TestSupport", "FastProxy.TestSupport\FastProxy.TestSupport.csproj", "{3F4F6D03-5685-4E12-9FDE-32B4CB884F3C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,6 +28,10 @@ Global
 		{C5B00333-58E7-4DCE-B722-607FD48441A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C5B00333-58E7-4DCE-B722-607FD48441A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C5B00333-58E7-4DCE-B722-607FD48441A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F4F6D03-5685-4E12-9FDE-32B4CB884F3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F4F6D03-5685-4E12-9FDE-32B4CB884F3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F4F6D03-5685-4E12-9FDE-32B4CB884F3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F4F6D03-5685-4E12-9FDE-32B4CB884F3C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

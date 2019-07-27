@@ -7,10 +7,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastProxy.Listeners;
 using FastProxy.Listeners.Chaos;
+using FastProxy.TestSupport;
 
 namespace FastProxy.App
 {
-    internal class Runner : IDisposable
+    public class Runner : IDisposable
     {
         public static void Run(int parallel, int count, Func<IPEndPoint, FastServer> serverFactory, Func<IPEndPoint, FastClient> clientFactory)
         {

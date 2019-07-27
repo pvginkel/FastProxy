@@ -6,9 +6,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FastProxy.App
+namespace FastProxy.TestSupport
 {
-    internal class EchoClient : FastClient
+    public class EchoClient : FastClient
     {
         private readonly int blockCount;
         private readonly byte[] block;

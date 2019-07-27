@@ -6,9 +6,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FastProxy.App
+namespace FastProxy.TestSupport
 {
-    internal class BulkServer : FastServer
+    public class BulkServer : FastServer
     {
         private readonly int blockSize;
         private readonly int blockCount;
