@@ -8,10 +8,11 @@ using System.Threading.Tasks;
 
 namespace FastProxy.TestSupport
 {
-    public abstract class FastClient
+    public abstract class FastClient : IDisposable
     {
         private readonly IPEndPoint endpoint;
         private IFastSocket socket;
+        private bool disposed;
 
         public event EventHandler Completed;
         public event ExceptionEventHandler ExceptionOccured;
@@ -43,9 +44,19 @@ namespace FastProxy.TestSupport
         protected virtual void OnCompleted() => Completed?.Invoke(this, EventArgs.Empty);
         protected virtual void OnExceptionOccured(ExceptionEventArgs e) => ExceptionOccured?.Invoke(this, e);
 
-        public void Close()
+        public void Dispose()
         {
-            socket.Dispose();
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                DisposeUtils.DisposeSafely(ref socket);
+
+                disposed = true;
+            }
         }
     }
 }

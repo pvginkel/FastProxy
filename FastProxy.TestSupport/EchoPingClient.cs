@@ -4,44 +4,49 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FastProxy.TestSupport
 {
-    public class EchoClient : FastClient
+    public class EchoPingClient : FastClient
     {
-        private readonly int blockCount;
         private readonly byte[] block;
+        private EchoSocket socket;
 
-        public EchoClient(IPEndPoint endpoint, byte[] block, int blockCount)
+        public EchoPingClient(IPEndPoint endpoint, byte[] block)
             : base(endpoint)
         {
-            this.blockCount = blockCount;
             this.block = block;
         }
 
         protected override IFastSocket CreateSocket(Socket client)
         {
-            return new EchoSocket(this, client);
+            socket = new EchoSocket(this, client);
+            return socket;
+        }
+
+        public void Ping()
+        {
+            socket.Ping();
         }
 
         private class EchoSocket : IFastSocket
         {
-            private readonly EchoClient client;
+            private readonly EchoPingClient client;
             private Socket socket;
             private SocketAsyncEventArgs sendEventArgs;
             private SocketAsyncEventArgs receiveEventArgs;
-            private int remaining;
+            private ManualResetEventSlim @event = new ManualResetEventSlim();
+            private long pending;
             private bool disposed;
 
             public event ExceptionEventHandler ExceptionOccured;
 
-            public EchoSocket(EchoClient client, Socket socket)
+            public EchoSocket(EchoPingClient client, Socket socket)
             {
                 this.client = client;
                 this.socket = socket;
-
-                remaining = client.blockCount;
 
                 sendEventArgs = new SocketAsyncEventArgs();
                 sendEventArgs.SetBuffer(client.block, 0, client.block.Length);
@@ -56,7 +61,18 @@ namespace FastProxy.TestSupport
 
             public void Start()
             {
+                // Ignore.
+            }
+
+            public void Ping()
+            {
+                @event.Reset();
+
+                Interlocked.Add(ref pending, client.block.Length);
+
                 StartSend();
+
+                @event.Wait();
             }
 
             private void StartSend()
@@ -90,16 +106,17 @@ namespace FastProxy.TestSupport
                 if (eventArgs == null)
                     return;
 
-                if (eventArgs.BytesTransferred == 0 || eventArgs.SocketError != SocketError.Success)
+                var transferred = eventArgs.BytesTransferred;
+                if (transferred == 0 || eventArgs.SocketError != SocketError.Success)
                 {
                     Close();
                     return;
                 }
 
-                if (--remaining > 0)
-                    StartSend();
+                if (Interlocked.Add(ref pending, -transferred) <= 0)
+                    @event.Set();
                 else
-                    client.OnCompleted();
+                    StartReceive();
             }
 
             private void Close()
@@ -127,6 +144,7 @@ namespace FastProxy.TestSupport
                     DisposeUtils.DisposeSafely(ref socket);
                     DisposeUtils.DisposeSafely(ref sendEventArgs);
                     DisposeUtils.DisposeSafely(ref receiveEventArgs);
+                    DisposeUtils.DisposeSafely(ref @event);
 
                     disposed = true;
                 }

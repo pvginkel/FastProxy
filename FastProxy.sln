@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastProxy.TestSupport", "FastProxy.TestSupport\FastProxy.TestSupport.csproj", "{3F4F6D03-5685-4E12-9FDE-32B4CB884F3C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastProxy.BenchmarkApp", "FastProxy.BenchmarkApp\FastProxy.BenchmarkApp.csproj", "{B5BB3A07-E1A0-4A68-9CE4-3FCAC4C01141}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{3F4F6D03-5685-4E12-9FDE-32B4CB884F3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3F4F6D03-5685-4E12-9FDE-32B4CB884F3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3F4F6D03-5685-4E12-9FDE-32B4CB884F3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5BB3A07-E1A0-4A68-9CE4-3FCAC4C01141}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5BB3A07-E1A0-4A68-9CE4-3FCAC4C01141}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5BB3A07-E1A0-4A68-9CE4-3FCAC4C01141}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5BB3A07-E1A0-4A68-9CE4-3FCAC4C01141}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

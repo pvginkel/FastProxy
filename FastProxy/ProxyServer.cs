@@ -51,14 +51,15 @@ namespace FastProxy
 
         private void StartAccept()
         {
+            var acceptEventArgs = this.acceptEventArgs;
+            var socket = this.socket;
+            if (acceptEventArgs == null || socket == null)
+                return;
+
             acceptEventArgs.AcceptSocket = null;
 
             try
             {
-                var socket = this.socket;
-                if (socket == null)
-                    return;
-
                 if (!socket.AcceptAsync(acceptEventArgs))
                     EndAccept();
             }

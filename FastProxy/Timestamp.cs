@@ -48,35 +48,12 @@ namespace FastProxy
             throw new ArgumentException($"Object must be of type {nameof(Timestamp)}");
         }
 
-        public static bool operator ==(Timestamp left, Timestamp right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(Timestamp left, Timestamp right)
-        {
-            return !left.Equals(right);
-        }
-
-        public static bool operator <(Timestamp left, Timestamp right)
-        {
-            return left.CompareTo(right) < 0;
-        }
-
-        public static bool operator >(Timestamp left, Timestamp right)
-        {
-            return left.CompareTo(right) > 0;
-        }
-
-        public static bool operator <=(Timestamp left, Timestamp right)
-        {
-            return left.CompareTo(right) <= 0;
-        }
-
-        public static bool operator >=(Timestamp left, Timestamp right)
-        {
-            return left.CompareTo(right) >= 0;
-        }
+        public static bool operator ==(Timestamp left, Timestamp right) => left.Equals(right);
+        public static bool operator !=(Timestamp left, Timestamp right) => !left.Equals(right);
+        public static bool operator <(Timestamp left, Timestamp right) => left.CompareTo(right) < 0;
+        public static bool operator >(Timestamp left, Timestamp right) => left.CompareTo(right) > 0;
+        public static bool operator <=(Timestamp left, Timestamp right) => left.CompareTo(right) <= 0;
+        public static bool operator >=(Timestamp left, Timestamp right) => left.CompareTo(right) >= 0;
 
         public static Timestamp operator +(Timestamp left, TimeSpan right)
         {

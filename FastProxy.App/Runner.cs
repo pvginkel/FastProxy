@@ -49,7 +49,7 @@ namespace FastProxy.App
             // Throttle.
             //var listener = new ThrottlingListener(this.listener, 1024 * 1024 * 20);
 
-            IConnector connector = new Connector(server.Endpoint, listener);
+            IConnector connector = new SimpleConnector(server.Endpoint, listener);
 
             // Chaos.
             //var chaosConfiguration = new ChaosConfiguration
@@ -140,25 +140,6 @@ namespace FastProxy.App
                 DisposeUtils.DisposeSafely(ref proxy);
 
                 disposed = true;
-            }
-        }
-
-        private class Connector : IConnector
-        {
-            private readonly IPEndPoint endpoint;
-            private readonly IListener listener;
-
-            public Connector(IPEndPoint endpoint, IListener listener)
-            {
-                this.endpoint = endpoint;
-                this.listener = listener;
-            }
-
-            public bool Connect(out IPEndPoint endpoint, out IListener listener)
-            {
-                endpoint = this.endpoint;
-                listener = this.listener;
-                return true;
             }
         }
     }
