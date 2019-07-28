@@ -12,9 +12,13 @@ The primary use case for FastProxy is for use in unit test or load test applicat
 
 FastProxy is a simple proxy server that allows you to get control over network connections between a server and a client. When building applications that e.g. need to be resilient against connection drops, it's very difficult to simulate this. FastProxy gives you the tools you need to properly test this and make your applications resilient against e.g. connection drops.
 
+The proxy server is built to be as fast as possible, to ensure it has as little impact on e.g. load tests as possible. Without any custom listeners configured, it will not allocation any memory after a connection has been established. The load testers are able to reach a 500 Mb/s data transfer speed tested on a 4 core Xeon server. Internally it uses [SocketAsyncEventArgs](https://docs.microsoft.com/en-us/dotnet/api/system.net.sockets.socketasynceventargs) and lock free multithreading to make the proxy server as high performance and low impact as possible without requiring any external dependencies or unsafe code.
+
+FastProxy has been tested on .NET Framework and .NET Core 2.2 and .NET Core 3.0 preview 7.
+
 ## Usage
 
-The FastProxy project exists a `ProxyServer` class. This class implements the .NET proxy that you would put between your server and client. The most trivial use case is as follows:
+The FastProxy project exposes a `ProxyServer` class. This class implements the .NET proxy that you would put between your server and client. The most trivial use case is as follows:
 
 ```cs
 public static void ProxyEcho()
