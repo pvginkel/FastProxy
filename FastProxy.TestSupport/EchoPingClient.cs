@@ -109,6 +109,8 @@ namespace FastProxy.TestSupport
                 var transferred = eventArgs.BytesTransferred;
                 if (transferred == 0 || eventArgs.SocketError != SocketError.Success)
                 {
+                    if (eventArgs.SocketError != SocketError.Success)
+                        OnExceptionOccured(new ExceptionEventArgs(new Exception($"Socket failed with error code {eventArgs.SocketError}")));
                     Close();
                     return;
                 }
@@ -141,6 +143,7 @@ namespace FastProxy.TestSupport
                 if (!disposed)
                 {
                     socket?.Shutdown(SocketShutdown.Both);
+                    @event?.Set();
                     DisposeUtils.DisposeSafely(ref socket);
                     DisposeUtils.DisposeSafely(ref sendEventArgs);
                     DisposeUtils.DisposeSafely(ref receiveEventArgs);
