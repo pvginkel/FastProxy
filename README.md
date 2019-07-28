@@ -4,6 +4,10 @@ FastProxy is a simple, fast, .NET TCP/IP proxy server.
 
 The primary use case for FastProxy is for use in unit test or load test applications that test applications or components that expose services over the internet.
 
+[Install from NuGet](https://www.nuget.org/packages/FastProxy).
+
+[API Documentation](https://pvginkel.github.io/FastProxy/).
+
 ## Introduction
 
 FastProxy is a simple proxy server that allows you to get control over network connections between a server and a client. When building applications that e.g. need to be resilient against connection drops, it's very difficult to simulate this. FastProxy gives you the tools you need to properly test this and make your applications resilient against e.g. connection drops.
