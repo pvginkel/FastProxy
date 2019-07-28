@@ -52,24 +52,24 @@ namespace FastProxy.App
             IConnector connector = new SimpleConnector(server.Endpoint, listener);
 
             // Chaos.
-            //var chaosConfiguration = new ChaosConfiguration
-            //{
-            //    Reject =
-            //    {
-            //        Percentage = 0.5
-            //    },
-            //    Abort =
-            //    {
-            //        Percentage = 1,
-            //        UpstreamBytes = new Range<long>(0, 1024 * 1024 * 10),
-            //        DownstreamBytes = new Range<long>(0, 1024 * 1024 * 10)
-            //    }
-            //};
-            //var chaosConnector = new ChaosConnector(chaosConfiguration, connector);
-            ////chaosConnector.Rejected += (s, e) => Console.WriteLine("REJECTED");
-            ////chaosConnector.Aborted += (s, e) => Console.WriteLine($"ABORTED reason {e.Reason}, upstream {e.UpstreamTransferred}, downstream {e.DownstreamTransferred}");
+            var chaosConfiguration = new ChaosConfiguration
+            {
+                Reject =
+                {
+                    Percentage = 0.5
+                },
+                Abort =
+                {
+                    Percentage = 1,
+                    UpstreamBytes = new Range<long>(0, 1024 * 1024 * 10),
+                    DownstreamBytes = new Range<long>(0, 1024 * 1024 * 10)
+                }
+            };
+            var chaosConnector = new ChaosConnector(chaosConfiguration, connector);
+            //chaosConnector.Rejected += (s, e) => Console.WriteLine("REJECTED");
+            //chaosConnector.Aborted += (s, e) => Console.WriteLine($"ABORTED reason {e.Reason}, upstream {e.UpstreamTransferred}, downstream {e.DownstreamTransferred}");
 
-            //connector = chaosConnector;
+            connector = chaosConnector;
 
             proxy = new ProxyServer(new IPEndPoint(IPAddress.Loopback, 0), connector);
             proxy.ExceptionOccured += (s, e) => Console.WriteLine($"EXCEPTION: {e.Exception.Message} ({e.Exception.GetType().FullName})");

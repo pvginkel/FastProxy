@@ -71,8 +71,6 @@ namespace FastProxy
                     source.LingerState = new LingerOption(false, 0);
                     target.LingerState = new LingerOption(false, 0);
 
-                    listener.Connected();
-
                     eventArgs.Dispose();
 
                     upstream = new Channel(Direction.Upstream, target, source, this);

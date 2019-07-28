@@ -1,13 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using FastProxy.Listeners;
 
 namespace FastProxy
 {
+    /// <summary>
+    /// Allows the outcome of a <see cref="OperationResult"/> to be delayed.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The purpose of the <see cref="OperationContinuation"/> class is to produce a
+    /// <see cref="OperationResult"/> the outcome of which will be decided at a
+    /// later time.
+    /// </para>
+    /// <para>
+    /// A use case of this class is the <see cref="ThrottlingListener"/>. If the
+    /// budget is exceeded in a specific time frame, it'll return a
+    /// <see cref="OperationOutcome.Pending"/> outcome. Then, at the end of the time
+    /// slice, it processes all pending outcomes and allows them to continue. This
+    /// spreads out data transfer over time.
+    /// </para>
+    /// </remarks>
     public class OperationContinuation
     {
         //
@@ -52,8 +69,23 @@ namespace FastProxy
 
         private volatile Action<OperationOutcome> callback;
 
+        /// <summary>
+        /// Gets the <see cref="OperationResult"/> controlled by this <see cref="OperationContinuation"/>.
+        /// </summary>
         public OperationResult Result => new OperationResult(this);
 
+        /// <summary>
+        /// Sets the outcome of the pending operation.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This method can only be called once and requires a value of
+        /// <see cref="OperationOutcome.Continue"/> or <see cref="OperationOutcome.CloseClient"/>.
+        /// If the callback has already been assigned, it'll be called immediately. Otherwise
+        /// the outcome will be stored and used when the callback is assigned.
+        /// </para>
+        /// </remarks>
+        /// <param name="outcome">The outcome of the pending operation.</param>
         public void SetOutcome(OperationOutcome outcome)
         {
             if (outcome != OperationOutcome.Continue && outcome != OperationOutcome.CloseClient)
@@ -97,6 +129,18 @@ namespace FastProxy
                 oldCallback(outcome);
         }
 
+        /// <summary>
+        /// Sets the callback to be called when the outcome is set.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This method can only be called once. If the outcome is already set, the
+        /// this <see cref="OperationContinuation"/> will be set to completed and the
+        /// callback will be called immediately. Otherwise the callback will be stored
+        /// and called when the operation does complete.
+        /// </para>
+        /// </remarks>
+        /// <param name="callback">The callback to call when the operation completes.</param>
         public void SetCallback(Action<OperationOutcome> callback)
         {
             if (callback == null)

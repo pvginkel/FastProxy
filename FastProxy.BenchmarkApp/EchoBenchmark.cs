@@ -91,10 +91,6 @@ namespace FastProxy.BenchmarkApp
 
         private class CompletedContinuationListener : IListener
         {
-            public void Connected()
-            {
-            }
-
             public void Closed()
             {
             }

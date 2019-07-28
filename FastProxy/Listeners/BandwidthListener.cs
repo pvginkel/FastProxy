@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace FastProxy.Listeners
 {
+    /// <summary>
+    /// Listener that tracks bandwidth usage.
+    /// </summary>
     public class BandwidthListener : TransferredListener
     {
         private Timer timer;
@@ -17,9 +20,20 @@ namespace FastProxy.Listeners
         private long lastDownstream;
         private long averageDownstream;
 
+        /// <summary>
+        /// Gets the upstream bandwidth usage over the last second.
+        /// </summary>
         public long AverageUpstream => Volatile.Read(ref averageUpstream);
+
+        /// <summary>
+        /// Gets the downstream bandwidth usage over the last second.
+        /// </summary>
         public long AverageDownstream => Volatile.Read(ref averageDownstream);
 
+        /// <summary>
+        /// Initializes a new <see cref="BandwidthListener"/>.
+        /// </summary>
+        /// <param name="inner">The inner listener to delegate calls to.</param>
         public BandwidthListener(IListener inner)
             : base(inner)
         {
@@ -47,6 +61,7 @@ namespace FastProxy.Listeners
             last = current;
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (!disposed)

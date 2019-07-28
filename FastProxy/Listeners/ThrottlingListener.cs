@@ -7,6 +7,29 @@ using System.Threading.Tasks;
 
 namespace FastProxy.Listeners
 {
+    /// <summary>
+    /// Listener that throttles bandwidth usage.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This listener throttles the bandwidth of connections. This is done by
+    /// delaying forwarding data for a little while if the budget for an interval
+    /// is exceeded.
+    /// </para>
+    /// <para>
+    /// The <c>slices</c> parameter to the constructor specifies the number of
+    /// time interval used to throttle connections. The default value for this
+    /// parameter is 10. This means that the transfer budget is decided for
+    /// every 100ms. If in that interval a connection exceeds its allotted budget,
+    /// this data transfer and all following ones are delayed until a timer
+    /// configured for the same interval fires.
+    /// </para>
+    /// <para>
+    /// This listener implements a best effort algorithm to throttle bandwidth
+    /// usage. It's not exact, and not meant to be. The primary use case is for
+    /// use in (load) testing applications to e.g. simulate a bad internet connection.
+    /// </para>
+    /// </remarks>
     public class ThrottlingListener : DelegatingListener
     {
         private readonly Channel upstream;
@@ -14,16 +37,34 @@ namespace FastProxy.Listeners
         private Timer timer;
         private bool disposed;
 
+        /// <summary>
+        /// Initializes a new <see cref="ThrottlingListener"/>.
+        /// </summary>
+        /// <param name="inner">The inner listener to delegate calls to.</param>
+        /// <param name="bandwidth">The number of bytes per second allowed.</param>
         public ThrottlingListener(IListener inner, long bandwidth)
             : this(inner, bandwidth, bandwidth)
         {
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="ThrottlingListener"/>.
+        /// </summary>
+        /// <param name="inner">The inner listener to delegate calls to.</param>
+        /// <param name="upstreamBandwidth">The number of upstream bytes per second allowed.</param>
+        /// <param name="downstreamBandwidth">The number of downstream bytes per second allowed.</param>
         public ThrottlingListener(IListener inner, long upstreamBandwidth, long downstreamBandwidth)
             : this(inner, upstreamBandwidth, downstreamBandwidth, 10)
         {
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="ThrottlingListener"/>.
+        /// </summary>
+        /// <param name="inner">The inner listener to delegate calls to.</param>
+        /// <param name="upstreamBandwidth">The number of upstream bytes per second allowed.</param>
+        /// <param name="downstreamBandwidth">The number of downstream bytes per second allowed.</param>
+        /// <param name="slices">The number of slices of a second in which budgets are calculated.</param>
         public ThrottlingListener(IListener inner, long upstreamBandwidth, long downstreamBandwidth, int slices)
             : base(inner)
         {
@@ -38,6 +79,7 @@ namespace FastProxy.Listeners
             downstream.Schedule();
         }
 
+        /// <inheritdoc/>
         public override OperationResult DataReceived(int bytesTransferred, Direction direction)
         {
             var result = base.DataReceived(bytesTransferred, direction);
@@ -49,6 +91,7 @@ namespace FastProxy.Listeners
             return channel.GetResult(bytesTransferred);
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (!disposed)
