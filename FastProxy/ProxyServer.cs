@@ -37,7 +37,7 @@ namespace FastProxy
         /// <summary>
         /// Gets the local endpoint of the server.
         /// </summary>
-        public IPEndPoint Endpoint => (IPEndPoint)socket.LocalEndPoint;
+        public IPEndPoint EndPoint => (IPEndPoint)socket.LocalEndPoint;
 
         /// <summary>
         /// Raised when an exception occurs.
@@ -48,7 +48,7 @@ namespace FastProxy
         /// Initializes a new <see cref="ProxyServer"/>.
         /// </summary>
         /// <param name="endpoint">The endpoint to host the proxy server; set the port number to 0 to
-        /// select a port at random, retrieved through <see cref="Endpoint"/>.</param>
+        /// select a port at random, retrieved through <see cref="EndPoint"/>.</param>
         /// <param name="connector">The connector used to accept incoming connections.</param>
         /// <param name="backlog">The listener backlog.</param>
         /// <param name="bufferSize">The buffer size for data transfer.</param>

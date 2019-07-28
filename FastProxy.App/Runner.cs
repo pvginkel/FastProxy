@@ -49,7 +49,7 @@ namespace FastProxy.App
             // Throttle.
             //var listener = new ThrottlingListener(this.listener, 1024 * 1024 * 20);
 
-            IConnector connector = new SimpleConnector(server.Endpoint, listener);
+            IConnector connector = new SimpleConnector(server.EndPoint, listener);
 
             // Chaos.
             var chaosConfiguration = new ChaosConfiguration
@@ -96,7 +96,7 @@ namespace FastProxy.App
 
         private void Start(ManualResetEventSlim @event)
         {
-            var client = clientFactory(proxy.Endpoint);
+            var client = clientFactory(proxy.EndPoint);
 
             client.Completed += (s, e) =>
             {

@@ -113,7 +113,7 @@
   <HelpKINode Title="DownstreamBytes property" Url="html/P_FastProxy_Listeners_Chaos_ChaosAbortConfiguration_DownstreamBytes.htm" />
   <HelpKINode Title="DownstreamTransferred property" Url="html/P_FastProxy_Listeners_Chaos_ChaosAbortedEventArgs_DownstreamTransferred.htm" />
   <HelpKINode Title="Duration property" Url="html/P_FastProxy_Listeners_Chaos_ChaosAbortConfiguration_Duration.htm" />
-  <HelpKINode Title="Endpoint property" Url="html/P_FastProxy_ProxyServer_Endpoint.htm" />
+  <HelpKINode Title="EndPoint property" Url="html/P_FastProxy_ProxyServer_EndPoint.htm" />
   <HelpKINode Title="Exception property" Url="html/P_FastProxy_ExceptionEventArgs_Exception.htm" />
   <HelpKINode Title="ExceptionEventArgs class">
     <HelpKINode Title="ExceptionEventArgs Class" Url="html/T_FastProxy_ExceptionEventArgs.htm" />
@@ -208,7 +208,7 @@
   <HelpKINode Title="ProxyServer.DefaultBacklog field" Url="html/F_FastProxy_ProxyServer_DefaultBacklog.htm" />
   <HelpKINode Title="ProxyServer.DefaultBufferSize field" Url="html/F_FastProxy_ProxyServer_DefaultBufferSize.htm" />
   <HelpKINode Title="ProxyServer.Dispose method" Url="html/M_FastProxy_ProxyServer_Dispose.htm" />
-  <HelpKINode Title="ProxyServer.Endpoint property" Url="html/P_FastProxy_ProxyServer_Endpoint.htm" />
+  <HelpKINode Title="ProxyServer.EndPoint property" Url="html/P_FastProxy_ProxyServer_EndPoint.htm" />
   <HelpKINode Title="ProxyServer.ExceptionOccured event" Url="html/E_FastProxy_ProxyServer_ExceptionOccured.htm" />
   <HelpKINode Title="ProxyServer.OnExceptionOccured method" Url="html/M_FastProxy_ProxyServer_OnExceptionOccured.htm" />
   <HelpKINode Title="ProxyServer.ProxyServer constructor" Url="html/M_FastProxy_ProxyServer__ctor.htm" />

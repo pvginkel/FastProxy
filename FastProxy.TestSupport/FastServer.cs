@@ -17,7 +17,7 @@ namespace FastProxy.TestSupport
         private Socket socket;
         private bool disposed;
 
-        public IPEndPoint Endpoint => (IPEndPoint)socket.LocalEndPoint;
+        public IPEndPoint EndPoint => (IPEndPoint)socket.LocalEndPoint;
 
         public event ExceptionEventHandler ExceptionOccured;
 

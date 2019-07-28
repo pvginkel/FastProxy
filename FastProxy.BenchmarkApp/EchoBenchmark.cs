@@ -59,13 +59,13 @@ namespace FastProxy.BenchmarkApp
                     break;
             }
 
-            proxy = new ProxyServer(new IPEndPoint(IPAddress.Loopback, 0), new SimpleConnector(echoServer.Endpoint, listener));
+            proxy = new ProxyServer(new IPEndPoint(IPAddress.Loopback, 0), new SimpleConnector(echoServer.EndPoint, listener));
             proxy.Start();
 
             var buffer = new byte[BlockSize];
             new Random().NextBytes(buffer);
 
-            echoClient = new EchoPingClient(proxy.Endpoint, buffer);
+            echoClient = new EchoPingClient(proxy.EndPoint, buffer);
             echoClient.Start();
         }
 
