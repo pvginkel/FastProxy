@@ -270,3 +270,56 @@ The implementation of the `DataReceived` method does the following:
 * In parallel, a timer is started that will, after a configured time interval, sets the outcome of the `OperationContinuation` to `OperationOutcome.Continue`.
 
 If you run this example, the console will show an elapsed time close to one second (twice the configured delay, since the data is echoed back from the server).
+
+### Simulation network errors
+
+The `ChaosConnector` allows you to simulate network errors.
+
+```cs
+public static void SimulateNetworkFailureEchoServer()
+{
+    using (var echoServer = new EchoServer(new IPEndPoint(IPAddress.Loopback, 0)))
+    {
+        echoServer.Start();
+
+        var configuration = new ChaosConfiguration
+        {
+            Reject =
+            {
+                Percentage = 0.5
+            }
+        };
+        var connector = new ChaosConnector(
+            configuration,
+            new SimpleConnector(echoServer.EndPoint, SinkListener.Instance)
+        );
+
+        using (var proxyServer = new ProxyServer(new IPEndPoint(IPAddress.Loopback, 0), connector))
+        {
+            proxyServer.Start();
+
+            var block = Encoding.UTF8.GetBytes("Hello world!");
+
+            int errors = 0;
+
+            for (int i = 0; i < 100; i++)
+            {
+                using (var echoClient = new EchoPingClient(proxyServer.EndPoint, block))
+                {
+                    echoClient.ExceptionOccured += (s, e) => Interlocked.Increment(ref errors);
+                    echoClient.Start();
+                    echoClient.Ping();
+                }
+            }
+
+            Console.WriteLine(errors);
+        }
+    }
+}
+```
+
+The above example configures a `ChaosConnector` to simulate network failures. In this example, we just configure the `ChaosRejectConfiguration.Percentage` property, specifying what percentage of incoming connections we want to reject. With this configuration, the console will print a number close to 50. It won't print that exactly, because the `ChaosConnector` internally uses `Random` to make these decisions.
+
+The `ChaosConfiguration` class has quite a few options to simulate network failure. See the [API documentation](https://pvginkel.github.io/FastProxy/html/T_FastProxy_Listeners_Chaos_ChaosConfiguration.htm) for more details.
+
+N.b. the name Chaos came from the [Chaos Monkey Netflix](https://github.com/Netflix/chaosmonkey) created. Basically the `ChaosConnector` allows you to have a simple Chaos Monkey embedded into your .NET application.

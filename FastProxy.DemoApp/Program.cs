@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using FastProxy.Listeners;
+using FastProxy.Listeners.Chaos;
 using FastProxy.TestSupport;
 
 namespace FastProxy.DemoApp
@@ -23,6 +24,7 @@ namespace FastProxy.DemoApp
             LoadBalancedProxyEcho();
             BandwidthThrottlingProxyEcho();
             DelayTransferEchoServer();
+            SimulateNetworkFailureEchoServer();
         }
 
         public static void ProxyEcho()
@@ -206,6 +208,47 @@ namespace FastProxy.DemoApp
                 });
 
                 return continuation.Result;
+            }
+        }
+
+        private static void SimulateNetworkFailureEchoServer()
+        {
+            using (var echoServer = new EchoServer(new IPEndPoint(IPAddress.Loopback, 0)))
+            {
+                echoServer.Start();
+
+                var configuration = new ChaosConfiguration
+                {
+                    Reject =
+                    {
+                        Percentage = 0.5
+                    }
+                };
+                var connector = new ChaosConnector(
+                    configuration,
+                    new SimpleConnector(echoServer.EndPoint, SinkListener.Instance)
+                );
+
+                using (var proxyServer = new ProxyServer(new IPEndPoint(IPAddress.Loopback, 0), connector))
+                {
+                    proxyServer.Start();
+
+                    var block = Encoding.UTF8.GetBytes("Hello world!");
+
+                    int errors = 0;
+
+                    for (int i = 0; i < 100; i++)
+                    {
+                        using (var echoClient = new EchoPingClient(proxyServer.EndPoint, block))
+                        {
+                            echoClient.ExceptionOccured += (s, e) => Interlocked.Increment(ref errors);
+                            echoClient.Start();
+                            echoClient.Ping();
+                        }
+                    }
+
+                    Console.WriteLine(errors);
+                }
             }
         }
     }
