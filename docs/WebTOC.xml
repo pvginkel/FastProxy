@@ -1,0 +1,191 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<HelpTOC>
+
+  <HelpTOCNode Id="2ade355e-b840-4b71-99c1-68f2bce9cb53" Title="FastProxy" Url="html/R_Project_FastProxy.htm">
+    <HelpTOCNode Id="92a3a8c9-8ac5-402e-9ae6-3e5263f509a7" Title="FastProxy" Url="html/N_FastProxy.htm">
+      <HelpTOCNode Title="ConnectResult Enumeration" Url="html/T_FastProxy_ConnectResult.htm" />
+      <HelpTOCNode Title="Direction Enumeration" Url="html/T_FastProxy_Direction.htm" />
+      <HelpTOCNode Id="5aa783c4-77ca-4981-a3fe-69d1d939506c" Title="ExceptionEventArgs Class" Url="html/T_FastProxy_ExceptionEventArgs.htm">
+        <HelpTOCNode Title="ExceptionEventArgs Constructor " Url="html/M_FastProxy_ExceptionEventArgs__ctor.htm" />
+        <HelpTOCNode Id="dcd06807-b183-4f3b-bdb2-8982470f5db9" Title="ExceptionEventArgs Properties" Url="html/Properties_T_FastProxy_ExceptionEventArgs.htm">
+          <HelpTOCNode Title="Exception Property " Url="html/P_FastProxy_ExceptionEventArgs_Exception.htm" />
+        </HelpTOCNode>
+        <HelpTOCNode Title="ExceptionEventArgs Methods" Url="html/Methods_T_FastProxy_ExceptionEventArgs.htm" />
+      </HelpTOCNode>
+      <HelpTOCNode Title="ExceptionEventHandler Delegate" Url="html/T_FastProxy_ExceptionEventHandler.htm" />
+      <HelpTOCNode Id="79fce0e5-dc48-491a-859c-df4c0a749aaa" Title="IConnector Interface" Url="html/T_FastProxy_IConnector.htm">
+        <HelpTOCNode Id="176d2bf4-c549-497b-ab94-f8f16c58af36" Title="IConnector Methods" Url="html/Methods_T_FastProxy_IConnector.htm">
+          <HelpTOCNode Title="Connect Method " Url="html/M_FastProxy_IConnector_Connect.htm" />
+        </HelpTOCNode>
+      </HelpTOCNode>
+      <HelpTOCNode Id="1d33c1d0-ee0b-4817-9edf-5fc84c102f28" Title="IListener Interface" Url="html/T_FastProxy_IListener.htm">
+        <HelpTOCNode Id="0f7dbf1e-9572-4dbd-ab0d-7dde83ab0b9f" Title="IListener Methods" Url="html/Methods_T_FastProxy_IListener.htm">
+          <HelpTOCNode Title="Closed Method " Url="html/M_FastProxy_IListener_Closed.htm" />
+          <HelpTOCNode Title="DataReceived Method " Url="html/M_FastProxy_IListener_DataReceived.htm" />
+        </HelpTOCNode>
+      </HelpTOCNode>
+      <HelpTOCNode Id="bfd41cd4-58cb-4bd5-a1c7-8f36fab5f5fb" Title="OperationContinuation Class" Url="html/T_FastProxy_OperationContinuation.htm">
+        <HelpTOCNode Title="OperationContinuation Constructor " Url="html/M_FastProxy_OperationContinuation__ctor.htm" />
+        <HelpTOCNode Id="e06e8396-857e-43a7-966b-e5620cd6bbad" Title="OperationContinuation Properties" Url="html/Properties_T_FastProxy_OperationContinuation.htm">
+          <HelpTOCNode Title="Result Property " Url="html/P_FastProxy_OperationContinuation_Result.htm" />
+        </HelpTOCNode>
+        <HelpTOCNode Id="bd3366d9-1894-4154-ad4c-52796cbbd290" Title="OperationContinuation Methods" Url="html/Methods_T_FastProxy_OperationContinuation.htm">
+          <HelpTOCNode Title="SetCallback Method " Url="html/M_FastProxy_OperationContinuation_SetCallback.htm" />
+          <HelpTOCNode Title="SetOutcome Method " Url="html/M_FastProxy_OperationContinuation_SetOutcome.htm" />
+        </HelpTOCNode>
+      </HelpTOCNode>
+      <HelpTOCNode Title="OperationOutcome Enumeration" Url="html/T_FastProxy_OperationOutcome.htm" />
+      <HelpTOCNode Id="9c07bba4-434d-414d-8342-bfb3e5b8a198" Title="OperationResult Structure" Url="html/T_FastProxy_OperationResult.htm">
+        <HelpTOCNode Id="a11aa149-2e48-4e88-a8ac-9b08c9ae5a33" Title="OperationResult Properties" Url="html/Properties_T_FastProxy_OperationResult.htm">
+          <HelpTOCNode Title="CloseClient Property " Url="html/P_FastProxy_OperationResult_CloseClient.htm" />
+          <HelpTOCNode Title="Continue Property " Url="html/P_FastProxy_OperationResult_Continue.htm" />
+          <HelpTOCNode Title="Outcome Property " Url="html/P_FastProxy_OperationResult_Outcome.htm" />
+        </HelpTOCNode>
+        <HelpTOCNode Id="9b3893f8-fd15-47db-9482-3c64556939cb" Title="OperationResult Methods" Url="html/Methods_T_FastProxy_OperationResult.htm">
+          <HelpTOCNode Title="SetCallback Method " Url="html/M_FastProxy_OperationResult_SetCallback.htm" />
+        </HelpTOCNode>
+      </HelpTOCNode>
+      <HelpTOCNode Id="4593c224-16b2-4b88-92c9-9cb7473b03ea" Title="ProxyServer Class" Url="html/T_FastProxy_ProxyServer.htm">
+        <HelpTOCNode Title="ProxyServer Constructor " Url="html/M_FastProxy_ProxyServer__ctor.htm" />
+        <HelpTOCNode Id="94b2fb92-0def-4829-a591-b285242dc1b1" Title="ProxyServer Properties" Url="html/Properties_T_FastProxy_ProxyServer.htm">
+          <HelpTOCNode Title="Endpoint Property " Url="html/P_FastProxy_ProxyServer_Endpoint.htm" />
+        </HelpTOCNode>
+        <HelpTOCNode Id="29a1d667-d147-4b95-a3ea-e6a808a87c82" Title="ProxyServer Methods" Url="html/Methods_T_FastProxy_ProxyServer.htm">
+          <HelpTOCNode Title="Dispose Method " Url="html/M_FastProxy_ProxyServer_Dispose.htm" />
+          <HelpTOCNode Title="OnExceptionOccured Method " Url="html/M_FastProxy_ProxyServer_OnExceptionOccured.htm" />
+          <HelpTOCNode Title="Start Method " Url="html/M_FastProxy_ProxyServer_Start.htm" />
+        </HelpTOCNode>
+        <HelpTOCNode Id="ad866ef9-0ab2-4a12-a012-eace14b51c05" Title="ProxyServer Events" Url="html/Events_T_FastProxy_ProxyServer.htm">
+          <HelpTOCNode Title="ExceptionOccured Event" Url="html/E_FastProxy_ProxyServer_ExceptionOccured.htm" />
+        </HelpTOCNode>
+        <HelpTOCNode Id="23e6aa81-3db1-4ddb-82cb-c97422218989" Title="ProxyServer Fields" Url="html/Fields_T_FastProxy_ProxyServer.htm">
+          <HelpTOCNode Title="DefaultBacklog Field" Url="html/F_FastProxy_ProxyServer_DefaultBacklog.htm" />
+          <HelpTOCNode Title="DefaultBufferSize Field" Url="html/F_FastProxy_ProxyServer_DefaultBufferSize.htm" />
+        </HelpTOCNode>
+      </HelpTOCNode>
+      <HelpTOCNode Id="3248fd0d-6522-4679-8b3a-094febed7a96" Title="Range(T) Class" Url="html/T_FastProxy_Range_1.htm">
+        <HelpTOCNode Title="Range(T) Constructor " Url="html/M_FastProxy_Range_1__ctor.htm" />
+        <HelpTOCNode Id="8fdba834-ba85-4467-ace1-9cebf03d79a5" Title="Range(T) Properties" Url="html/Properties_T_FastProxy_Range_1.htm">
+          <HelpTOCNode Title="Maximum Property " Url="html/P_FastProxy_Range_1_Maximum.htm" />
+          <HelpTOCNode Title="Minimum Property " Url="html/P_FastProxy_Range_1_Minimum.htm" />
+        </HelpTOCNode>
+        <HelpTOCNode Title="Range(T) Methods" Url="html/Methods_T_FastProxy_Range_1.htm" />
+      </HelpTOCNode>
+      <HelpTOCNode Id="273c844b-240f-4414-8662-233d2c97cb45" Title="SimpleConnector Class" Url="html/T_FastProxy_SimpleConnector.htm">
+        <HelpTOCNode Title="SimpleConnector Constructor " Url="html/M_FastProxy_SimpleConnector__ctor.htm" />
+        <HelpTOCNode Id="3b3cbae3-bc99-4e75-ba2e-4d27164e08ae" Title="SimpleConnector Methods" Url="html/Methods_T_FastProxy_SimpleConnector.htm">
+          <HelpTOCNode Title="Connect Method " Url="html/M_FastProxy_SimpleConnector_Connect.htm" />
+        </HelpTOCNode>
+      </HelpTOCNode>
+    </HelpTOCNode>
+    <HelpTOCNode Id="b5210e38-c850-4a01-9646-c6f9a0002eb6" Title="FastProxy.Listeners" Url="html/N_FastProxy_Listeners.htm">
+      <HelpTOCNode Id="63e9bb28-2a85-4553-82ff-c4e19c2df255" Title="BandwidthListener Class" Url="html/T_FastProxy_Listeners_BandwidthListener.htm">
+        <HelpTOCNode Title="BandwidthListener Constructor " Url="html/M_FastProxy_Listeners_BandwidthListener__ctor.htm" />
+        <HelpTOCNode Id="dfea7585-ad11-49ae-bd45-4668cb7debcc" Title="BandwidthListener Properties" Url="html/Properties_T_FastProxy_Listeners_BandwidthListener.htm">
+          <HelpTOCNode Title="AverageDownstream Property " Url="html/P_FastProxy_Listeners_BandwidthListener_AverageDownstream.htm" />
+          <HelpTOCNode Title="AverageUpstream Property " Url="html/P_FastProxy_Listeners_BandwidthListener_AverageUpstream.htm" />
+        </HelpTOCNode>
+        <HelpTOCNode Id="f927e3b2-4b35-4672-83b1-e5b367c451b5" Title="BandwidthListener Methods" Url="html/Methods_T_FastProxy_Listeners_BandwidthListener.htm">
+          <HelpTOCNode Id="cc77bda4-9ab0-407e-a071-3ec94628ed87" Title="Dispose Method " Url="html/Overload_FastProxy_Listeners_BandwidthListener_Dispose.htm">
+            <HelpTOCNode Title="Dispose Method (Boolean)" Url="html/M_FastProxy_Listeners_BandwidthListener_Dispose.htm" />
+          </HelpTOCNode>
+        </HelpTOCNode>
+      </HelpTOCNode>
+      <HelpTOCNode Id="12df7fb1-0b7a-4567-8c2b-eb4431a611ff" Title="DelegatingListener Class" Url="html/T_FastProxy_Listeners_DelegatingListener.htm">
+        <HelpTOCNode Title="DelegatingListener Constructor " Url="html/M_FastProxy_Listeners_DelegatingListener__ctor.htm" />
+        <HelpTOCNode Id="6ac1b950-a039-4fd2-bd61-bd8a238f069e" Title="DelegatingListener Methods" Url="html/Methods_T_FastProxy_Listeners_DelegatingListener.htm">
+          <HelpTOCNode Title="Closed Method " Url="html/M_FastProxy_Listeners_DelegatingListener_Closed.htm" />
+          <HelpTOCNode Title="DataReceived Method " Url="html/M_FastProxy_Listeners_DelegatingListener_DataReceived.htm" />
+          <HelpTOCNode Id="845ce7e4-3ef1-456d-8abd-1a020c62184d" Title="Dispose Method " Url="html/Overload_FastProxy_Listeners_DelegatingListener_Dispose.htm">
+            <HelpTOCNode Title="Dispose Method " Url="html/M_FastProxy_Listeners_DelegatingListener_Dispose.htm" />
+            <HelpTOCNode Title="Dispose Method (Boolean)" Url="html/M_FastProxy_Listeners_DelegatingListener_Dispose_1.htm" />
+          </HelpTOCNode>
+        </HelpTOCNode>
+      </HelpTOCNode>
+      <HelpTOCNode Id="028c765c-50b7-449d-a8a9-5f727effcddd" Title="SinkListener Class" Url="html/T_FastProxy_Listeners_SinkListener.htm">
+        <HelpTOCNode Title="SinkListener Constructor " Url="html/M_FastProxy_Listeners_SinkListener__ctor.htm" />
+        <HelpTOCNode Id="f2c6faf8-bbd9-43cf-91ff-e5ffef0eab0e" Title="SinkListener Methods" Url="html/Methods_T_FastProxy_Listeners_SinkListener.htm">
+          <HelpTOCNode Title="Closed Method " Url="html/M_FastProxy_Listeners_SinkListener_Closed.htm" />
+          <HelpTOCNode Title="DataReceived Method " Url="html/M_FastProxy_Listeners_SinkListener_DataReceived.htm" />
+          <HelpTOCNode Title="Dispose Method " Url="html/M_FastProxy_Listeners_SinkListener_Dispose.htm" />
+        </HelpTOCNode>
+        <HelpTOCNode Id="bf03cbd8-bad1-4ed8-ba79-b4d86a8f9209" Title="SinkListener Fields" Url="html/Fields_T_FastProxy_Listeners_SinkListener.htm">
+          <HelpTOCNode Title="Instance Field" Url="html/F_FastProxy_Listeners_SinkListener_Instance.htm" />
+        </HelpTOCNode>
+      </HelpTOCNode>
+      <HelpTOCNode Id="dba5c873-8c10-4d60-8e8c-7d7ede9434ff" Title="ThrottlingListener Class" Url="html/T_FastProxy_Listeners_ThrottlingListener.htm">
+        <HelpTOCNode Id="ec5982b5-6819-46cf-8ccf-58b9a89f4ad6" Title="ThrottlingListener Constructor " Url="html/Overload_FastProxy_Listeners_ThrottlingListener__ctor.htm">
+          <HelpTOCNode Title="ThrottlingListener Constructor (IListener, Int64)" Url="html/M_FastProxy_Listeners_ThrottlingListener__ctor.htm" />
+          <HelpTOCNode Title="ThrottlingListener Constructor (IListener, Int64, Int64)" Url="html/M_FastProxy_Listeners_ThrottlingListener__ctor_1.htm" />
+          <HelpTOCNode Title="ThrottlingListener Constructor (IListener, Int64, Int64, Int32)" Url="html/M_FastProxy_Listeners_ThrottlingListener__ctor_2.htm" />
+        </HelpTOCNode>
+        <HelpTOCNode Id="0e232022-9805-48d6-8f93-2a4646f169a2" Title="ThrottlingListener Methods" Url="html/Methods_T_FastProxy_Listeners_ThrottlingListener.htm">
+          <HelpTOCNode Title="DataReceived Method " Url="html/M_FastProxy_Listeners_ThrottlingListener_DataReceived.htm" />
+          <HelpTOCNode Id="15a0b52d-5f8d-4c19-96c7-7260c8ba6896" Title="Dispose Method " Url="html/Overload_FastProxy_Listeners_ThrottlingListener_Dispose.htm">
+            <HelpTOCNode Title="Dispose Method (Boolean)" Url="html/M_FastProxy_Listeners_ThrottlingListener_Dispose.htm" />
+          </HelpTOCNode>
+        </HelpTOCNode>
+      </HelpTOCNode>
+      <HelpTOCNode Id="4adb5206-c0a4-4507-b872-97e6e8e86439" Title="TransferredListener Class" Url="html/T_FastProxy_Listeners_TransferredListener.htm">
+        <HelpTOCNode Title="TransferredListener Constructor " Url="html/M_FastProxy_Listeners_TransferredListener__ctor.htm" />
+        <HelpTOCNode Id="6da45cb9-89e0-4db6-b1a7-88079215f30d" Title="TransferredListener Properties" Url="html/Properties_T_FastProxy_Listeners_TransferredListener.htm">
+          <HelpTOCNode Title="Downstream Property " Url="html/P_FastProxy_Listeners_TransferredListener_Downstream.htm" />
+          <HelpTOCNode Title="Upstream Property " Url="html/P_FastProxy_Listeners_TransferredListener_Upstream.htm" />
+        </HelpTOCNode>
+        <HelpTOCNode Id="b57abce8-1b82-4c78-83f9-7f84a839db8a" Title="TransferredListener Methods" Url="html/Methods_T_FastProxy_Listeners_TransferredListener.htm">
+          <HelpTOCNode Title="DataReceived Method " Url="html/M_FastProxy_Listeners_TransferredListener_DataReceived.htm" />
+        </HelpTOCNode>
+      </HelpTOCNode>
+    </HelpTOCNode>
+    <HelpTOCNode Id="296e5a0e-f8c9-4f7a-bded-17caa9050344" Title="FastProxy.Listeners.Chaos" Url="html/N_FastProxy_Listeners_Chaos.htm">
+      <HelpTOCNode Id="aabacb30-2c46-4321-b407-adebcba7a6a6" Title="ChaosAbortConfiguration Class" Url="html/T_FastProxy_Listeners_Chaos_ChaosAbortConfiguration.htm">
+        <HelpTOCNode Title="ChaosAbortConfiguration Constructor " Url="html/M_FastProxy_Listeners_Chaos_ChaosAbortConfiguration__ctor.htm" />
+        <HelpTOCNode Id="ff433828-c137-4b42-825c-7671a5f1e6e9" Title="ChaosAbortConfiguration Properties" Url="html/Properties_T_FastProxy_Listeners_Chaos_ChaosAbortConfiguration.htm">
+          <HelpTOCNode Title="DownstreamBytes Property " Url="html/P_FastProxy_Listeners_Chaos_ChaosAbortConfiguration_DownstreamBytes.htm" />
+          <HelpTOCNode Title="Duration Property " Url="html/P_FastProxy_Listeners_Chaos_ChaosAbortConfiguration_Duration.htm" />
+          <HelpTOCNode Title="Percentage Property " Url="html/P_FastProxy_Listeners_Chaos_ChaosAbortConfiguration_Percentage.htm" />
+          <HelpTOCNode Title="UpstreamBytes Property " Url="html/P_FastProxy_Listeners_Chaos_ChaosAbortConfiguration_UpstreamBytes.htm" />
+        </HelpTOCNode>
+        <HelpTOCNode Title="ChaosAbortConfiguration Methods" Url="html/Methods_T_FastProxy_Listeners_Chaos_ChaosAbortConfiguration.htm" />
+      </HelpTOCNode>
+      <HelpTOCNode Id="9003da13-1392-4975-b4bb-7070be896d60" Title="ChaosAbortedEventArgs Class" Url="html/T_FastProxy_Listeners_Chaos_ChaosAbortedEventArgs.htm">
+        <HelpTOCNode Title="ChaosAbortedEventArgs Constructor " Url="html/M_FastProxy_Listeners_Chaos_ChaosAbortedEventArgs__ctor.htm" />
+        <HelpTOCNode Id="ba73759a-ca85-4db7-a476-2f0b421ba9dd" Title="ChaosAbortedEventArgs Properties" Url="html/Properties_T_FastProxy_Listeners_Chaos_ChaosAbortedEventArgs.htm">
+          <HelpTOCNode Title="DownstreamTransferred Property " Url="html/P_FastProxy_Listeners_Chaos_ChaosAbortedEventArgs_DownstreamTransferred.htm" />
+          <HelpTOCNode Title="Reason Property " Url="html/P_FastProxy_Listeners_Chaos_ChaosAbortedEventArgs_Reason.htm" />
+          <HelpTOCNode Title="UpstreamTransferred Property " Url="html/P_FastProxy_Listeners_Chaos_ChaosAbortedEventArgs_UpstreamTransferred.htm" />
+        </HelpTOCNode>
+        <HelpTOCNode Title="ChaosAbortedEventArgs Methods" Url="html/Methods_T_FastProxy_Listeners_Chaos_ChaosAbortedEventArgs.htm" />
+      </HelpTOCNode>
+      <HelpTOCNode Title="ChaosAbortedEventHandler Delegate" Url="html/T_FastProxy_Listeners_Chaos_ChaosAbortedEventHandler.htm" />
+      <HelpTOCNode Title="ChaosAbortReason Enumeration" Url="html/T_FastProxy_Listeners_Chaos_ChaosAbortReason.htm" />
+      <HelpTOCNode Id="1012a4a8-6c34-4d89-badf-5baf2e4b3332" Title="ChaosConfiguration Class" Url="html/T_FastProxy_Listeners_Chaos_ChaosConfiguration.htm">
+        <HelpTOCNode Title="ChaosConfiguration Constructor " Url="html/M_FastProxy_Listeners_Chaos_ChaosConfiguration__ctor.htm" />
+        <HelpTOCNode Id="551fd524-148e-4178-b620-635fdba583b6" Title="ChaosConfiguration Properties" Url="html/Properties_T_FastProxy_Listeners_Chaos_ChaosConfiguration.htm">
+          <HelpTOCNode Title="Abort Property " Url="html/P_FastProxy_Listeners_Chaos_ChaosConfiguration_Abort.htm" />
+          <HelpTOCNode Title="Reject Property " Url="html/P_FastProxy_Listeners_Chaos_ChaosConfiguration_Reject.htm" />
+        </HelpTOCNode>
+        <HelpTOCNode Title="ChaosConfiguration Methods" Url="html/Methods_T_FastProxy_Listeners_Chaos_ChaosConfiguration.htm" />
+      </HelpTOCNode>
+      <HelpTOCNode Id="6ead3a96-2647-4b3e-9c36-3846ec21ba31" Title="ChaosConnector Class" Url="html/T_FastProxy_Listeners_Chaos_ChaosConnector.htm">
+        <HelpTOCNode Title="ChaosConnector Constructor " Url="html/M_FastProxy_Listeners_Chaos_ChaosConnector__ctor.htm" />
+        <HelpTOCNode Id="b7a521d4-3738-4dee-b39a-d173a70331f4" Title="ChaosConnector Methods" Url="html/Methods_T_FastProxy_Listeners_Chaos_ChaosConnector.htm">
+          <HelpTOCNode Title="Connect Method " Url="html/M_FastProxy_Listeners_Chaos_ChaosConnector_Connect.htm" />
+          <HelpTOCNode Title="OnAborted Method " Url="html/M_FastProxy_Listeners_Chaos_ChaosConnector_OnAborted.htm" />
+          <HelpTOCNode Title="OnRejected Method " Url="html/M_FastProxy_Listeners_Chaos_ChaosConnector_OnRejected.htm" />
+        </HelpTOCNode>
+        <HelpTOCNode Id="c4ebbffb-ab4f-4ffe-93e0-895a4ae17b8c" Title="ChaosConnector Events" Url="html/Events_T_FastProxy_Listeners_Chaos_ChaosConnector.htm">
+          <HelpTOCNode Title="Aborted Event" Url="html/E_FastProxy_Listeners_Chaos_ChaosConnector_Aborted.htm" />
+          <HelpTOCNode Title="Rejected Event" Url="html/E_FastProxy_Listeners_Chaos_ChaosConnector_Rejected.htm" />
+        </HelpTOCNode>
+      </HelpTOCNode>
+      <HelpTOCNode Id="e35f0dfb-60b7-47af-865b-227f0a2e923b" Title="ChaosRejectConfiguration Class" Url="html/T_FastProxy_Listeners_Chaos_ChaosRejectConfiguration.htm">
+        <HelpTOCNode Title="ChaosRejectConfiguration Constructor " Url="html/M_FastProxy_Listeners_Chaos_ChaosRejectConfiguration__ctor.htm" />
+        <HelpTOCNode Id="9b6fc289-c091-4a64-a2ad-fcd916bc4fd1" Title="ChaosRejectConfiguration Properties" Url="html/Properties_T_FastProxy_Listeners_Chaos_ChaosRejectConfiguration.htm">
+          <HelpTOCNode Title="Percentage Property " Url="html/P_FastProxy_Listeners_Chaos_ChaosRejectConfiguration_Percentage.htm" />
+        </HelpTOCNode>
+        <HelpTOCNode Title="ChaosRejectConfiguration Methods" Url="html/Methods_T_FastProxy_Listeners_Chaos_ChaosRejectConfiguration.htm" />
+      </HelpTOCNode>
+    </HelpTOCNode>
+  </HelpTOCNode>
+</HelpTOC>

@@ -19,7 +19,7 @@ namespace FastProxy
     /// The <see cref="DataReceived(int, Direction)"/> method is called
     /// whenever data is received from the server of the client. The return value
     /// of this method can be used to force a connect to be closed. This
-    /// feature is e.g. used in <see cref="ChaosListener"/> to randomly close
+    /// feature is e.g. used in <see cref="ChaosConnector"/> to randomly close
     /// connections.
     /// </para>
     /// <para>
