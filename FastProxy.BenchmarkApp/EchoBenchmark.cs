@@ -12,7 +12,7 @@ using FastProxy.TestSupport;
 namespace FastProxy.BenchmarkApp
 {
     [MemoryDiagnoser]
-    [ClrJob, Core22Job, Core30Job]
+    [ClrJob, Core22Job]
     public class EchoBenchmark
     {
         private ProxyServer proxy;
