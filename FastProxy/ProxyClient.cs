@@ -81,8 +81,7 @@ namespace FastProxy
                 }
                 catch (Exception ex)
                 {
-                    RaiseException(ex);
-                    Abort();
+                    Abort(ex);
                 }
             }
             else
@@ -114,8 +113,11 @@ namespace FastProxy
             OnClosed();
         }
 
-        private void Abort()
+        private void Abort(Exception exception = null)
         {
+            if (exception != null)
+                RaiseException(exception);
+
             aborted = true;
 
             upstream?.Abort();

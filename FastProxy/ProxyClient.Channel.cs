@@ -71,15 +71,13 @@ namespace FastProxy
 
                         if (!source.ReceiveAsyncSuppressFlow(eventArgs.Receive))
                         {
-                            bool again = EndReceive(true);
-                            if (again)
+                            if (EndReceive(true) == ReceiveResult.Again)
                                 continue;
                         }
                     }
                     catch (Exception ex)
                     {
-                        client.RaiseException(ex);
-                        client.Abort();
+                        client.Abort(ex);
                     }
 
                     break;
@@ -91,11 +89,18 @@ namespace FastProxy
                 EndReceive();
             }
 
-            private bool EndReceive(bool receiving = false)
+            private ReceiveResult EndReceive(bool receiving = false)
             {
                 var eventArgs = this.eventArgs;
                 if (eventArgs == null)
-                    return false;
+                    return ReceiveResult.Done;
+
+                var socketError = eventArgs.Send.SocketError;
+                if (socketError != SocketError.Success)
+                {
+                    client.Abort(CreateSocketErrorException(socketError));
+                    return ReceiveResult.Done;
+                }
 
                 var close = eventArgs.Receive.BytesTransferred == 0;
 
@@ -105,20 +110,20 @@ namespace FastProxy
                 {
                     if (complete)
                         CompleteChannel();
-                    return false;
+                    return ReceiveResult.Done;
                 }
 
                 if (!sending && !close)
                     return DataAvailable(receiving);
 
-                return false;
+                return ReceiveResult.Done;
             }
 
-            private bool DataAvailable(bool receiving = false)
+            private ReceiveResult DataAvailable(bool receiving = false)
             {
                 var eventArgs = this.eventArgs;
                 if (eventArgs == null)
-                    return false;
+                    return ReceiveResult.Done;
 
                 try
                 {
@@ -146,11 +151,10 @@ namespace FastProxy
                 }
                 catch (Exception ex)
                 {
-                    client.RaiseException(ex);
-                    client.Abort();
+                    client.Abort(ex);
                 }
 
-                return false;
+                return ReceiveResult.Done;
             }
 
             private void OperationCallback(OperationOutcome outcome)
@@ -168,19 +172,18 @@ namespace FastProxy
                 }
                 catch (Exception ex)
                 {
-                    client.RaiseException(ex);
-                    client.Abort();
+                    client.Abort(ex);
                 }
             }
 
-            private bool CompleteOperation(OperationOutcome outcome, int offset, int bytesTransferred, bool receiving = false)
+            private ReceiveResult CompleteOperation(OperationOutcome outcome, int offset, int bytesTransferred, bool receiving = false)
             {
                 switch (outcome)
                 {
                     case OperationOutcome.Continue:
                         StartSend(offset, bytesTransferred);
                         if (receiving)
-                            return true;
+                            return ReceiveResult.Again;
                         StartReceive();
                         break;
 
@@ -192,7 +195,7 @@ namespace FastProxy
                         throw new InvalidOperationException();
                 }
 
-                return false;
+                return ReceiveResult.Done;
             }
 
             public void Abort()
@@ -226,8 +229,7 @@ namespace FastProxy
                 }
                 catch (Exception ex)
                 {
-                    client.RaiseException(ex);
-                    client.Abort();
+                    client.Abort(ex);
                 }
             }
 
@@ -238,6 +240,17 @@ namespace FastProxy
 
             private void EndSend()
             {
+                var eventArgs = this.eventArgs;
+                if (eventArgs == null)
+                    return;
+
+                var socketError = eventArgs.Send.SocketError;
+                if (socketError != SocketError.Success)
+                {
+                    client.Abort(CreateSocketErrorException(socketError));
+                    return;
+                }
+
                 try
                 {
                     UpdateStateSendingComplete(out bool dataAvailable, out bool closing, out bool complete);
@@ -254,8 +267,7 @@ namespace FastProxy
                 }
                 catch (Exception ex)
                 {
-                    client.RaiseException(ex);
-                    client.Abort();
+                    client.Abort(ex);
                 }
             }
 
@@ -282,6 +294,11 @@ namespace FastProxy
                     client.CloseSafely();
             }
 
+            private Exception CreateSocketErrorException(SocketError socketError)
+            {
+                return new SocketException((int)socketError);
+            }
+
             public void Dispose()
             {
                 if (!disposed)
@@ -298,6 +315,12 @@ namespace FastProxy
 
                     disposed = true;
                 }
+            }
+
+            private enum ReceiveResult
+            {
+                Again,
+                Done
             }
         }
     }
