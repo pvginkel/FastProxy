@@ -187,11 +187,11 @@ namespace FastProxy.DemoApp
                 this.delay = delay;
             }
 
-            public override OperationResult DataReceived(int bytesTransferred, Direction direction)
+            public override OperationResult DataReceived(int transferred, Direction direction)
             {
                 // Call the base listener and return that value if it's not continue.
 
-                var result = base.DataReceived(bytesTransferred, direction);
+                var result = base.DataReceived(transferred, direction);
                 if (result.Outcome != OperationOutcome.Continue)
                     return result;
 

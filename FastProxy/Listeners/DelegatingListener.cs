@@ -30,9 +30,9 @@ namespace FastProxy.Listeners
         }
 
         /// <inheritdoc/>
-        public virtual OperationResult DataReceived(int bytesTransferred, Direction direction)
+        public virtual OperationResult DataReceived(int transferred, Direction direction)
         {
-            return inner.DataReceived(bytesTransferred, direction);
+            return inner.DataReceived(transferred, direction);
         }
 
         /// <inheritdoc/>

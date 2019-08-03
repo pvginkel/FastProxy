@@ -95,7 +95,7 @@ namespace FastProxy.BenchmarkApp
             {
             }
 
-            public OperationResult DataReceived(int bytesTransferred, Direction direction)
+            public OperationResult DataReceived(int transferred, Direction direction)
             {
                 var continuation = new OperationContinuation();
                 continuation.SetOutcome(OperationOutcome.Continue);
@@ -124,7 +124,7 @@ namespace FastProxy.BenchmarkApp
             {
             }
 
-            public OperationResult DataReceived(int bytesTransferred, Direction direction)
+            public OperationResult DataReceived(int transferred, Direction direction)
             {
                 var continuation = new OperationContinuation();
                 queue.Add(continuation);

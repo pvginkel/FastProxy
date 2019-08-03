@@ -38,16 +38,16 @@ namespace FastProxy.Listeners.Chaos
             downstream = new Channel(abortAfter, abortDownstreamBytes);
         }
 
-        public override OperationResult DataReceived(int bytesTransferred, Direction direction)
+        public override OperationResult DataReceived(int transferred, Direction direction)
         {
             var channel = direction == Direction.Upstream ? upstream : downstream;
-            if (channel != null && channel.ShouldAbort(bytesTransferred, out var reason))
+            if (channel != null && channel.ShouldAbort(transferred, out var reason))
             {
                 connector.RaiseAborted(reason, upstream.Transferred, downstream.Transferred);
                 return OperationResult.CloseClient;
             }
 
-            return base.DataReceived(bytesTransferred, direction);
+            return base.DataReceived(transferred, direction);
         }
 
         private TimeSpan GetRandomValue(Random random, Range<TimeSpan> range)

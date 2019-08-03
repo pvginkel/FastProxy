@@ -35,14 +35,14 @@ namespace FastProxy.Listeners
         }
 
         /// <inheritdoc/>
-        public override OperationResult DataReceived(int bytesTransferred, Direction direction)
+        public override OperationResult DataReceived(int transferred, Direction direction)
         {
             if (direction == Direction.Upstream)
-                Interlocked.Add(ref upstream, bytesTransferred);
+                Interlocked.Add(ref upstream, transferred);
             else
-                Interlocked.Add(ref downstream, bytesTransferred);
+                Interlocked.Add(ref downstream, transferred);
 
-            return base.DataReceived(bytesTransferred, direction);
+            return base.DataReceived(transferred, direction);
         }
     }
 }

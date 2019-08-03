@@ -29,7 +29,7 @@ namespace FastProxy.Listeners
         }
 
         /// <inheritdoc/>
-        public OperationResult DataReceived(int bytesTransferred, Direction direction)
+        public OperationResult DataReceived(int transferred, Direction direction)
         {
             return OperationResult.Continue;
         }

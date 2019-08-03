@@ -80,15 +80,15 @@ namespace FastProxy.Listeners
         }
 
         /// <inheritdoc/>
-        public override OperationResult DataReceived(int bytesTransferred, Direction direction)
+        public override OperationResult DataReceived(int transferred, Direction direction)
         {
-            var result = base.DataReceived(bytesTransferred, direction);
+            var result = base.DataReceived(transferred, direction);
             if (result.Outcome != OperationOutcome.Continue)
                 return result;
 
             var channel = direction == Direction.Upstream ? upstream : downstream;
 
-            return channel.GetResult(bytesTransferred);
+            return channel.GetResult(transferred);
         }
 
         /// <inheritdoc/>

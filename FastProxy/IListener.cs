@@ -39,9 +39,9 @@ namespace FastProxy
         /// Called when bytes have been received from either the server or the
         /// client.
         /// </summary>
-        /// <param name="bytesTransferred">The number of bytes received.</param>
+        /// <param name="transferred">The number of bytes received.</param>
         /// <param name="direction">The direction in which the data is going.</param>
         /// <returns>The action to take based on receiving this data.</returns>
-        OperationResult DataReceived(int bytesTransferred, Direction direction);
+        OperationResult DataReceived(int transferred, Direction direction);
     }
 }
