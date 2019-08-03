@@ -24,7 +24,7 @@ namespace FastProxy.BenchmarkApp
         [Params(1, 16, 512, 4096, 8192)]
         public int BlockSize { get; set; }
 
-        [Params(ContinueMode.Direct, ContinueMode.Continuation, ContinueMode.ScheduledContinuation)]
+        [Params(ContinueMode.Direct, ContinueMode.Continuation, ContinueMode.Scheduled)]
         public ContinueMode ContinueMode { get; set; }
 
         [GlobalSetup]
@@ -33,7 +33,7 @@ namespace FastProxy.BenchmarkApp
             echoServer = new EchoServer(new IPEndPoint(IPAddress.Loopback, 0));
             echoServer.Start();
 
-            if (ContinueMode == ContinueMode.ScheduledContinuation)
+            if (ContinueMode == ContinueMode.Scheduled)
             {
                 queue = new BlockingCollection<OperationContinuation>();
 
@@ -54,7 +54,7 @@ namespace FastProxy.BenchmarkApp
                 case ContinueMode.Continuation:
                     listener = new CompletedContinuationListener();
                     break;
-                case ContinueMode.ScheduledContinuation:
+                case ContinueMode.Scheduled:
                     listener = new ScheduledContinuationListener(queue);
                     break;
             }

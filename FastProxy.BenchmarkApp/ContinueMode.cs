@@ -10,6 +10,6 @@ namespace FastProxy.BenchmarkApp
     {
         Direct,
         Continuation,
-        ScheduledContinuation
+        Scheduled
     }
 }
