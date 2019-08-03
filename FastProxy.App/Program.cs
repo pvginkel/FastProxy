@@ -13,63 +13,41 @@ namespace FastProxy.App
         {
             DebugListener.Setup();
 
-            var argList = new Queue<string>(args);
+            if (!ParseUtils.ParseArguments<Options, LoadTestOptions>(args, out var sharedOptions, out var verbOptions))
+                return;
 
-            int loops = 1;
-            if (argList.Peek() == "loop")
+            switch (verbOptions)
             {
-                argList.Dequeue();
-                loops = int.Parse(argList.Dequeue());
-            }
-
-            string type = argList.Dequeue();
-
-            int parallel = GetArgument(10);
-            int blockSize = GetArgument(4096);
-            int blockCount = GetArgument(10_000);
-
-            int count = loops * parallel;
-
-            switch (type)
-            {
-                case "echo":
-                    RunEcho(parallel, count, blockSize, blockCount);
+                case EchoOptions echoOptions:
+                    RunEcho(sharedOptions, echoOptions);
                     break;
-
-                case "bulk":
-                    RunBulk(parallel, count, blockSize, blockCount);
+                case BulkOptions bulkOptions:
+                    RunBulk(sharedOptions, bulkOptions);
                     break;
-            }
-
-            int GetArgument(int defaultValue)
-            {
-                if (argList.Count > 0)
-                    return int.Parse(argList.Dequeue());
-                return defaultValue;
             }
         }
 
-        private static void RunEcho(int parallel, int count, int blockSize, int blockCount)
+        private static void RunEcho(Options options, EchoOptions verbOptions)
         {
-            var buffer = new byte[blockSize];
+            var buffer = new byte[ParseUtils.ParseSize(verbOptions.BlockSize).Value];
 
             new Random().NextBytes(buffer);
 
             Runner.Run(
-                parallel,
-                count,
+                options,
+                verbOptions,
                 p => new EchoServer(p),
-                p => new EchoClient(p, buffer, blockCount)
+                p => new EchoClient(p, buffer, verbOptions.BlockCount)
             );
         }
 
-        private static void RunBulk(int parallel, int count, int blockSize, int blockCount)
+        private static void RunBulk(Options options, BulkOptions verbOptions)
         {
             Runner.Run(
-                parallel,
-                count,
-                p => new BulkServer(p, blockSize, blockCount),
-                p => new BulkClient(p, blockSize, blockCount)
+                options,
+                verbOptions,
+                p => new BulkServer(p, ParseUtils.ParseSize(verbOptions.BlockSize).Value, verbOptions.BlockCount),
+                p => new BulkClient(p, ParseUtils.ParseSize(verbOptions.BlockSize).Value, verbOptions.BlockCount)
             );
         }
     }

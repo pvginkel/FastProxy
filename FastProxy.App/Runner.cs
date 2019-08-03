@@ -13,9 +13,9 @@ namespace FastProxy.App
 {
     public class Runner : IDisposable
     {
-        public static void Run(int parallel, int count, Func<IPEndPoint, FastServer> serverFactory, Func<IPEndPoint, FastClient> clientFactory)
+        public static void Run(Options options, LoadTestOptions verbOptions, Func<IPEndPoint, FastServer> serverFactory, Func<IPEndPoint, FastClient> clientFactory)
         {
-            using (var runner = new Runner(parallel, count, serverFactory, clientFactory))
+            using (var runner = new Runner(options, verbOptions, serverFactory, clientFactory))
             {
                 runner.Run();
             }
@@ -23,6 +23,7 @@ namespace FastProxy.App
 
         private readonly int parallel;
         private readonly int count;
+        private readonly Options options;
         private readonly Func<IPEndPoint, FastServer> serverFactory;
         private readonly Func<IPEndPoint, FastClient> clientFactory;
         private readonly BandwidthListener listener = new BandwidthListener(SinkListener.Instance);
@@ -33,10 +34,11 @@ namespace FastProxy.App
         private ProxyServer proxy;
         private bool disposed;
 
-        private Runner(int parallel, int count, Func<IPEndPoint, FastServer> serverFactory, Func<IPEndPoint, FastClient> clientFactory)
+        private Runner(Options options, LoadTestOptions verbOptions, Func<IPEndPoint, FastServer> serverFactory, Func<IPEndPoint, FastClient> clientFactory)
         {
-            this.parallel = parallel;
-            this.count = count;
+            parallel = verbOptions.Parallel;
+            count = verbOptions.Iterations * verbOptions.Parallel;
+            this.options = options;
             this.serverFactory = serverFactory;
             this.clientFactory = clientFactory;
         }
@@ -46,30 +48,35 @@ namespace FastProxy.App
             var server = serverFactory(new IPEndPoint(IPAddress.Loopback, 0));
             server.Start();
 
-            // Throttle.
-            //var listener = new ThrottlingListener(this.listener, 1024 * 1024 * 20);
+            IListener listener = this.listener;
+
+            if (ParseUtils.ParseSize(options.Bandwidth) is int bandwidth)
+                listener = new ThrottlingListener(this.listener, bandwidth);
 
             IConnector connector = new SimpleConnector(server.EndPoint, listener);
 
-            // Chaos.
-            var chaosConfiguration = new ChaosConfiguration
+            if (options.Chaos)
             {
-                Reject =
+                var chaosConfiguration = new ChaosConfiguration
                 {
-                    Percentage = 0.5
-                },
-                Abort =
-                {
-                    Percentage = 1,
-                    UpstreamBytes = new Range<long>(0, 1024 * 1024 * 10),
-                    DownstreamBytes = new Range<long>(0, 1024 * 1024 * 10)
-                }
-            };
-            var chaosConnector = new ChaosConnector(chaosConfiguration, connector);
-            //chaosConnector.Rejected += (s, e) => Console.WriteLine("REJECTED");
-            //chaosConnector.Aborted += (s, e) => Console.WriteLine($"ABORTED reason {e.Reason}, upstream {e.UpstreamTransferred}, downstream {e.DownstreamTransferred}");
+                    Reject =
+                    {
+                        Percentage = 0.5
+                    },
+                    Abort =
+                    {
+                        Percentage = 1,
+                        UpstreamBytes = new Range<long>(0, 1024 * 1024 * 10),
+                        DownstreamBytes = new Range<long>(0, 1024 * 1024 * 10)
+                    }
+                };
+                var chaosConnector = new ChaosConnector(chaosConfiguration, connector);
 
-            connector = chaosConnector;
+                //chaosConnector.Rejected += (s, e) => Console.WriteLine("REJECTED");
+                //chaosConnector.Aborted += (s, e) => Console.WriteLine($"ABORTED reason {e.Reason}, upstream {e.UpstreamTransferred}, downstream {e.DownstreamTransferred}");
+
+                connector = chaosConnector;
+            }
 
             proxy = new ProxyServer(new IPEndPoint(IPAddress.Loopback, 0), connector);
             proxy.ExceptionOccured += (s, e) => Console.WriteLine($"EXCEPTION: {e.Exception.Message} ({e.Exception.GetType().FullName})");
