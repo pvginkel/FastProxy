@@ -226,7 +226,7 @@ namespace FastProxy.DemoApp
                 };
                 var connector = new ChaosConnector(
                     configuration,
-                    new SimpleConnector(echoServer.EndPoint, SinkListener.Instance)
+                    new SimpleConnector(echoServer.EndPoint)
                 );
 
                 using (var proxyServer = new ProxyServer(new IPEndPoint(IPAddress.Loopback, 0), connector))

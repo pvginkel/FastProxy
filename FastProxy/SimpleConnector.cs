@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using FastProxy.Listeners;
 
 namespace FastProxy
 {
@@ -25,7 +26,7 @@ namespace FastProxy
         public SimpleConnector(IPEndPoint endpoint, IListener listener = null)
         {
             this.endpoint = endpoint;
-            this.listener = listener;
+            this.listener = listener ?? SinkListener.Instance;
         }
 
         /// <inheritdoc/>
