@@ -50,7 +50,8 @@ namespace FastProxy
             }
             catch (Exception ex)
             {
-                CloseSafely(ex);
+                RaiseException(ex);
+                CloseSafely();
             }
         }
 
@@ -80,7 +81,8 @@ namespace FastProxy
                 }
                 catch (Exception ex)
                 {
-                    CloseSafely(ex);
+                    RaiseException(ex);
+                    Abort();
                 }
             }
             else
@@ -89,7 +91,7 @@ namespace FastProxy
             }
         }
 
-        private void CloseSafely(Exception exception = null)
+        private void CloseSafely()
         {
             try
             {
@@ -97,8 +99,7 @@ namespace FastProxy
             }
             catch (Exception ex)
             {
-                if (exception == null)
-                    exception = ex;
+                RaiseException(ex);
             }
 
             try
@@ -107,14 +108,23 @@ namespace FastProxy
             }
             catch (Exception ex)
             {
-                if (exception == null)
-                    exception = ex;
+                RaiseException(ex);
             }
 
             OnClosed();
+        }
 
-            if (exception != null)
-                OnExceptionOccured(new ExceptionEventArgs(exception));
+        private void Abort()
+        {
+            aborted = true;
+
+            upstream?.Abort();
+            downstream?.Abort();
+        }
+
+        private void RaiseException(Exception exception)
+        {
+            OnExceptionOccured(new ExceptionEventArgs(exception));
         }
 
         protected virtual void OnExceptionOccured(ExceptionEventArgs e) => ExceptionOccured?.Invoke(this, e);

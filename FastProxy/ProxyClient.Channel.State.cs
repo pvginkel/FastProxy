@@ -16,13 +16,11 @@ namespace FastProxy
             [Flags]
             private enum State
             {
-                None = 0,
                 Sending = 1,
                 Receiving = 2,
-                DataReceived = 4,
-                ReceiveCompleted = 8,
-                Completed = 16,
-                Aborted = 32
+                DataAvailable = 4,
+                Closing = 8,
+                Closed = 16
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -34,7 +32,7 @@ namespace FastProxy
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private static void Clear(ref int state, State flag) => state &= ~(int)flag;
 
-            private void UpdateStateStartReceiving(out bool completed, out bool aborted)
+            private void UpdateStateStartReceiving(out bool closing, out bool complete)
             {
                 int oldState;
                 int newState;
@@ -44,18 +42,17 @@ namespace FastProxy
                     oldState = newState = state;
 
                     Debug.Assert(!IsSet(oldState, State.Receiving));
+                    Debug.Assert(!IsSet(oldState, State.DataAvailable));
+                    Debug.Assert(!IsSet(oldState, State.Closed) || IsSet(oldState, State.Closing));
 
-                    aborted = IsSet(oldState, State.Aborted);
-                    completed = false;
+                    closing = IsSet(oldState, State.Closing);
+                    complete = false;
 
-                    if (aborted)
+                    if (closing)
                     {
-                        completed =
-                            !IsSet(oldState, State.Sending) &&
-                            !IsSet(oldState, State.Completed);
-
-                        if (completed)
-                            Set(ref newState, State.Completed);
+                        complete = !IsSet(oldState, State.Sending | State.Closed);
+                        if (complete)
+                            Set(ref newState, State.Closed);
                     }
                     else
                     {
@@ -65,7 +62,7 @@ namespace FastProxy
                 while (Interlocked.CompareExchange(ref state, newState, oldState) != oldState);
             }
 
-            private void UpdateStateReceivingComplete(bool receiveCompleted, out bool completed, out bool aborted, out bool sending)
+            private void UpdateStateReceivingComplete(bool close, out bool sending, out bool closing, out bool complete)
             {
                 int oldState;
                 int newState;
@@ -75,37 +72,33 @@ namespace FastProxy
                     oldState = newState = state;
 
                     Debug.Assert(IsSet(oldState, State.Receiving));
+                    Debug.Assert(!IsSet(oldState, State.DataAvailable));
+                    Debug.Assert(!IsSet(oldState, State.Closed) || IsSet(oldState, State.Closing));
 
                     Clear(ref newState, State.Receiving);
+                    if (close)
+                        Set(ref newState, State.Closing);
 
-                    aborted = IsSet(oldState, State.Aborted);
+                    closing = IsSet(oldState, State.Closing) || close;
                     sending = IsSet(oldState, State.Sending);
-                    completed = false;
+                    complete = false;
 
-                    if (aborted)
+                    if (closing)
                     {
-                        completed = !sending && !IsSet(oldState, State.Completed);
-                        if (completed)
-                            Set(ref newState, State.Completed);
+                        complete = !IsSet(oldState, State.Sending | State.Closed);
+                        if (complete)
+                            Set(ref newState, State.Closed);
                     }
                     else
                     {
-                        if (receiveCompleted || IsSet(oldState, State.DataReceived))
-                        {
-                            Set(ref newState, State.ReceiveCompleted);
-
-                            completed = !sending && !IsSet(oldState, State.Completed);
-                            if (completed)
-                                Set(ref newState, State.Completed);
-                        }
-                        if (sending && !completed)
-                            Set(ref newState, State.DataReceived);
+                        if (sending)
+                            Set(ref newState, State.DataAvailable);
                     }
                 }
                 while (Interlocked.CompareExchange(ref state, newState, oldState) != oldState);
             }
 
-            private void UpdateStateStartSending(out bool completed, out bool aborted)
+            private void UpdateStateStartSending(out bool closing, out bool complete)
             {
                 int oldState;
                 int newState;
@@ -115,18 +108,16 @@ namespace FastProxy
                     oldState = newState = state;
 
                     Debug.Assert(!IsSet(oldState, State.Sending));
+                    Debug.Assert(!IsSet(oldState, State.Closed) || IsSet(oldState, State.Closing));
 
-                    aborted = IsSet(oldState, State.Aborted);
-                    completed = false;
+                    closing = IsSet(oldState, State.Closing);
+                    complete = false;
 
-                    if (aborted)
+                    if (closing)
                     {
-                        completed =
-                            !IsSet(oldState, State.Receiving) &&
-                            !IsSet(oldState, State.Completed);
-
-                        if (completed)
-                            Set(ref newState, State.Completed);
+                        complete = !IsSet(oldState, State.Receiving | State.Closed);
+                        if (complete)
+                            Set(ref newState, State.Closed);
                     }
                     else
                     {
@@ -136,7 +127,7 @@ namespace FastProxy
                 while (Interlocked.CompareExchange(ref state, newState, oldState) != oldState);
             }
 
-            private void UpdateStateSendingComplete(out bool dataReceived, out bool completed, out bool aborted)
+            private void UpdateStateSendingComplete(out bool dataAvailable, out bool closing, out bool complete)
             {
                 int oldState;
                 int newState;
@@ -146,39 +137,31 @@ namespace FastProxy
                     oldState = newState = state;
 
                     Debug.Assert(IsSet(oldState, State.Sending));
+                    Debug.Assert(!IsSet(oldState, State.Closed) || IsSet(oldState, State.Closing));
 
                     Clear(ref newState, State.Sending);
 
-                    aborted = IsSet(oldState, State.Aborted);
-                    dataReceived = false;
+                    closing = IsSet(oldState, State.Closing);
+                    dataAvailable = false;
+                    complete = false;
 
-                    if (aborted)
+                    if (closing)
                     {
-                        completed =
-                            !IsSet(oldState, State.Receiving) &&
-                            !IsSet(oldState, State.Completed);
-
-                        if (completed)
-                            Set(ref newState, State.Completed);
+                        complete = !IsSet(oldState, State.Receiving | State.Closed);
+                        if (complete)
+                            Set(ref newState, State.Closed);
                     }
                     else
                     {
-                        Clear(ref newState, State.DataReceived);
+                        dataAvailable = IsSet(oldState, State.DataAvailable);
 
-                        dataReceived = IsSet(oldState, State.DataReceived);
-
-                        completed =
-                            IsSet(oldState, State.ReceiveCompleted) &&
-                            !IsSet(oldState, State.Completed);
-
-                        if (completed)
-                            Set(ref newState, State.Completed);
+                        Clear(ref newState, State.DataAvailable);
                     }
                 }
                 while (Interlocked.CompareExchange(ref state, newState, oldState) != oldState);
             }
 
-            private void UpdateStateAbort(out bool completed)
+            private void UpdateStateClosing(out bool complete)
             {
                 int oldState;
                 int newState;
@@ -187,15 +170,11 @@ namespace FastProxy
                 {
                     oldState = newState = state;
 
-                    Set(ref newState, State.Aborted);
+                    Set(ref newState, State.Closing);
 
-                    completed =
-                        !IsSet(oldState, State.Sending) &&
-                        !IsSet(oldState, State.Receiving) &&
-                        !IsSet(oldState, State.Completed);
-
-                    if (completed)
-                        Set(ref newState, State.Completed);
+                    complete = !IsSet(oldState, State.Sending | State.Receiving | State.Closed);
+                    if (complete)
+                        Set(ref newState, State.Closed);
                 }
                 while (Interlocked.CompareExchange(ref state, newState, oldState) != oldState);
             }

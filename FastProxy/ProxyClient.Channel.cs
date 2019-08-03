@@ -60,11 +60,11 @@ namespace FastProxy
 
                         eventArgs.Receive.SetBuffer(offset, client.bufferSize);
 
-                        UpdateStateStartReceiving(out bool completed, out bool aborted);
+                        UpdateStateStartReceiving(out bool closing, out bool complete);
 
-                        if (aborted)
+                        if (closing)
                         {
-                            if (completed)
+                            if (complete)
                                 CompleteChannel();
                             return;
                         }
@@ -78,7 +78,8 @@ namespace FastProxy
                     }
                     catch (Exception ex)
                     {
-                        client.CloseSafely(ex);
+                        client.RaiseException(ex);
+                        client.Abort();
                     }
 
                     break;
@@ -96,19 +97,24 @@ namespace FastProxy
                 if (eventArgs == null)
                     return false;
 
-                var receiveCompleted = eventArgs.Receive.BytesTransferred == 0;
+                var close = eventArgs.Receive.BytesTransferred == 0;
 
-                UpdateStateReceivingComplete(receiveCompleted, out bool completed, out bool aborted, out bool sending);
+                UpdateStateReceivingComplete(close, out bool sending, out bool closing, out bool complete);
 
-                if (completed)
-                    CompleteChannel();
-                else if (!aborted && !sending && !receiveCompleted)
-                    return DataReceived(receiving);
+                if (closing)
+                {
+                    if (complete)
+                        CompleteChannel();
+                    return false;
+                }
+
+                if (!sending && !close)
+                    return DataAvailable(receiving);
 
                 return false;
             }
 
-            private bool DataReceived(bool receiving = false)
+            private bool DataAvailable(bool receiving = false)
             {
                 var eventArgs = this.eventArgs;
                 if (eventArgs == null)
@@ -140,7 +146,8 @@ namespace FastProxy
                 }
                 catch (Exception ex)
                 {
-                    client.CloseSafely(ex);
+                    client.RaiseException(ex);
+                    client.Abort();
                 }
 
                 return false;
@@ -161,7 +168,8 @@ namespace FastProxy
                 }
                 catch (Exception ex)
                 {
-                    client.CloseSafely(ex);
+                    client.RaiseException(ex);
+                    client.Abort();
                 }
             }
 
@@ -177,14 +185,7 @@ namespace FastProxy
                         break;
 
                     case OperationOutcome.CloseClient:
-                        client.aborted = true;
-
-                        // The CloseClient operation result is implemented by pretending that
-                        // we've finished receiving data. This should properly close both channels.
-                        // If there's an outstanding send, that will pick up the final close.
-
-                        AbortChannel(client.upstream);
-                        AbortChannel(client.downstream);
+                        client.Abort();
                         break;
 
                     default:
@@ -192,16 +193,13 @@ namespace FastProxy
                 }
 
                 return false;
+            }
 
-                void AbortChannel(Channel channel)
-                {
-                    if (channel == null)
-                        return;
-
-                    channel.UpdateStateAbort(out bool completed);
-                    if (completed)
-                        channel.CompleteChannel();
-                }
+            public void Abort()
+            {
+                UpdateStateClosing(out bool completed);
+                if (completed)
+                    CompleteChannel();
             }
 
             private void StartSend(int offset, int count)
@@ -214,11 +212,11 @@ namespace FastProxy
                 {
                     eventArgs.Send.SetBuffer(offset, count);
 
-                    UpdateStateStartSending(out bool completed, out bool aborted);
+                    UpdateStateStartSending(out bool closing, out bool complete);
 
-                    if (aborted)
+                    if (closing)
                     {
-                        if (completed)
+                        if (complete)
                             CompleteChannel();
                         return;
                     }
@@ -228,7 +226,8 @@ namespace FastProxy
                 }
                 catch (Exception ex)
                 {
-                    client.CloseSafely(ex);
+                    client.RaiseException(ex);
+                    client.Abort();
                 }
             }
 
@@ -241,16 +240,22 @@ namespace FastProxy
             {
                 try
                 {
-                    UpdateStateSendingComplete(out bool dataReceived, out bool completed, out bool aborted);
+                    UpdateStateSendingComplete(out bool dataAvailable, out bool closing, out bool complete);
 
-                    if (completed)
-                        CompleteChannel();
-                    else if (!aborted && dataReceived)
-                        DataReceived();
+                    if (closing)
+                    {
+                        if (complete)
+                            CompleteChannel();
+                        return;
+                    }
+
+                    if (dataAvailable)
+                        DataAvailable();
                 }
                 catch (Exception ex)
                 {
-                    client.CloseSafely(ex);
+                    client.RaiseException(ex);
+                    client.Abort();
                 }
             }
 

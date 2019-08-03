@@ -44,6 +44,10 @@
       "commandName": "Project",
       "commandLineArgs": "--chaos bulk -i 10 -p 100 -s 4K -c 10000"
     },
+    "Chaos bulk 400, size 4K, count 10,000, 50 loops": {
+      "commandName": "Project",
+      "commandLineArgs": "--chaos bulk -i 50 -p 400 -s 4K -c 10000"
+    },
     "Bulk 100, size 4K, count 10,000, 10 loops, throttle at 10M": {
       "commandName": "Project",
       "commandLineArgs": "--bandwidth 10M bulk -i 10 -p 100 -s 4K -c 10000"

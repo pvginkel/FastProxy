@@ -38,6 +38,7 @@ namespace FastProxy.TestSupport
             catch (Exception ex)
             {
                 OnExceptionOccured(new ExceptionEventArgs(ex));
+                OnCompleted();
             }
         }
 
