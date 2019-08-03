@@ -95,7 +95,7 @@ namespace FastProxy
                 if (eventArgs == null)
                     return ReceiveResult.Done;
 
-                var socketError = eventArgs.Send.SocketError;
+                var socketError = eventArgs.Receive.SocketError;
                 if (socketError != SocketError.Success)
                 {
                     client.Abort(CreateSocketErrorException(socketError));
