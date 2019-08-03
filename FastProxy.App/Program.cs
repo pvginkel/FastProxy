@@ -13,11 +13,14 @@ namespace FastProxy.App
         {
             DebugListener.Setup();
 
-            if (!ParseUtils.ParseArguments<Options, LoadTestOptions>(args, out var sharedOptions, out var verbOptions))
+            if (!ParseUtils.ParseArguments<Options, VerbOptions>(args, out var sharedOptions, out var verbOptions))
                 return;
 
             switch (verbOptions)
             {
+                case ServeOptions serveOptions:
+                    RunProxy(sharedOptions, serveOptions);
+                    break;
                 case EchoOptions echoOptions:
                     RunEcho(sharedOptions, echoOptions);
                     break;
@@ -27,13 +30,18 @@ namespace FastProxy.App
             }
         }
 
+        private static void RunProxy(Options options, ServeOptions verbOptions)
+        {
+            ProxyRunner.Run(options, verbOptions);
+        }
+
         private static void RunEcho(Options options, EchoOptions verbOptions)
         {
             var buffer = new byte[ParseUtils.ParseSize(verbOptions.BlockSize).Value];
 
             new Random().NextBytes(buffer);
 
-            Runner.Run(
+            LoadTestRunner.Run(
                 options,
                 verbOptions,
                 p => new EchoServer(p),
@@ -43,7 +51,7 @@ namespace FastProxy.App
 
         private static void RunBulk(Options options, BulkOptions verbOptions)
         {
-            Runner.Run(
+            LoadTestRunner.Run(
                 options,
                 verbOptions,
                 p => new BulkServer(p, ParseUtils.ParseSize(verbOptions.BlockSize).Value, verbOptions.BlockCount),

@@ -11,49 +11,29 @@ using FastProxy.TestSupport;
 
 namespace FastProxy.App
 {
-    public class Runner : IDisposable
+    public abstract class Runner : IDisposable
     {
-        public static void Run(Options options, LoadTestOptions verbOptions, Func<IPEndPoint, FastServer> serverFactory, Func<IPEndPoint, FastClient> clientFactory)
-        {
-            using (var runner = new Runner(options, verbOptions, serverFactory, clientFactory))
-            {
-                runner.Run();
-            }
-        }
-
-        private readonly int parallel;
-        private readonly int count;
         private readonly Options options;
-        private readonly Func<IPEndPoint, FastServer> serverFactory;
-        private readonly Func<IPEndPoint, FastClient> clientFactory;
-        private readonly BandwidthListener listener = new BandwidthListener(SinkListener.Instance);
-        private int started;
-        private int completed;
-        private int running;
-        private readonly object syncRoot = new object();
         private ProxyServer proxy;
         private bool disposed;
 
-        private Runner(Options options, LoadTestOptions verbOptions, Func<IPEndPoint, FastServer> serverFactory, Func<IPEndPoint, FastClient> clientFactory)
+        protected BandwidthListener Listener { get; } = new BandwidthListener(SinkListener.Instance);
+
+        protected Runner(Options options)
         {
-            parallel = verbOptions.Parallel;
-            count = verbOptions.Iterations * verbOptions.Parallel;
             this.options = options;
-            this.serverFactory = serverFactory;
-            this.clientFactory = clientFactory;
         }
 
-        private void Run()
+        protected void Run(int port = 0)
         {
-            var server = serverFactory(new IPEndPoint(IPAddress.Loopback, 0));
-            server.Start();
+            var endpoint = GetServerEndpoint();
 
-            IListener listener = this.listener;
+            IListener listener = Listener;
 
             if (ParseUtils.ParseSize(options.Bandwidth) is int bandwidth)
-                listener = new ThrottlingListener(this.listener, bandwidth);
+                listener = new ThrottlingListener(listener, bandwidth);
 
-            IConnector connector = new SimpleConnector(server.EndPoint, listener);
+            IConnector connector = new SimpleConnector(endpoint, listener);
 
             if (options.Chaos)
             {
@@ -78,67 +58,16 @@ namespace FastProxy.App
                 connector = chaosConnector;
             }
 
-            proxy = new ProxyServer(new IPEndPoint(IPAddress.Loopback, 0), connector);
+            proxy = new ProxyServer(new IPEndPoint(IPAddress.Loopback, port), connector);
             proxy.ExceptionOccured += (s, e) => Console.WriteLine($"EXCEPTION: {e.Exception.Message} ({e.Exception.GetType().FullName})");
             proxy.Start();
 
-            started = parallel;
-
-            using (var @event = new ManualResetEventSlim())
-            {
-                for (int i = 0; i < parallel; i++)
-                {
-                    ThreadPool.QueueUserWorkItem(p => Start(@event));
-                }
-
-                do
-                {
-                    PrintStatus();
-                }
-                while (!@event.Wait(TimeSpan.FromSeconds(1)));
-            }
-
-            PrintStatus();
+            Running(proxy.EndPoint);
         }
 
-        private void Start(ManualResetEventSlim @event)
-        {
-            var client = clientFactory(proxy.EndPoint);
+        protected abstract IPEndPoint GetServerEndpoint();
 
-            client.Completed += (s, e) =>
-            {
-                lock (syncRoot)
-                {
-                    completed++;
-                    running--;
-
-                    if (started < count)
-                    {
-                        started++;
-                        Start(@event);
-                    }
-                    else if (completed >= count)
-                    {
-                        @event.Set();
-                    }
-                }
-            };
-
-            client.Start();
-
-            lock (syncRoot)
-            {
-                running++;
-            }
-        }
-
-        private void PrintStatus()
-        {
-            double upstreamMb = (double)listener.AverageUpstream / (1024 * 1024);
-            double downstreamMb = (double)listener.AverageDownstream / (1024 * 1024);
-
-            Console.WriteLine($"Upstream {upstreamMb:0.00} mb/s, downstream {downstreamMb:0.00} mb/s, completed {completed}, running {running}");
-        }
+        protected abstract void Running(IPEndPoint endpoint);
 
         public void Dispose()
         {

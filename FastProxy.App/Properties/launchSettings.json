@@ -47,6 +47,14 @@
     "Bulk 100, size 4K, count 10,000, 10 loops, throttle at 10M": {
       "commandName": "Project",
       "commandLineArgs": "--bandwidth 10M bulk -i 10 -p 100 -s 4K -c 10000"
+    },
+    "Serve": {
+      "commandName": "Project",
+      "commandLineArgs": "serve"
+    },
+    "Bulk 100, size 4K, count 10,000, loops 1,000, external proxy": {
+      "commandName": "Project",
+      "commandLineArgs": "bulk -i 1000 -p 100 -s 4K -c 10000 --external-proxy"
     }
   }
 }
