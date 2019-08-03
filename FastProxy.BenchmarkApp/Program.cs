@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -15,18 +16,30 @@ namespace FastProxy.BenchmarkApp
         {
 #if false
 
+            const int blockSize = 8192;
+            const int loops = 128;
+
             while (true)
             {
-                Console.WriteLine("RUN");
+                Console.Write("RUN");
 
-                var benchmark = new EchoBenchmark();
-                benchmark.BlockSize = 4096;
-                benchmark.ContinueMode = ContinueMode.Continuation;
+                var benchmark = new EchoBenchmark
+                {
+                    BlockSize = blockSize,
+                    ContinueMode = ContinueMode.Direct
+                };
+
                 benchmark.Setup();
-                for (int i = 0; i < 1000; i++)
+
+                var stopwatch = Stopwatch.StartNew();
+
+                for (int i = 0; i < loops; i++)
                 {
                     benchmark.Ping();
                 }
+
+                Console.WriteLine($" {(stopwatch.Elapsed.TotalMilliseconds / loops) * 1000:0.0} us");
+
                 benchmark.Cleanup();
             }
 
