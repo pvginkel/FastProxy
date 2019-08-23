@@ -296,6 +296,12 @@ namespace FastProxy
 
             private Exception CreateSocketErrorException(SocketError socketError)
             {
+                if (socketError == SocketError.OperationAborted)
+                {
+                    Debug.Assert(client.aborted);
+                    return null;
+                }
+
                 return new SocketException((int)socketError);
             }
 
