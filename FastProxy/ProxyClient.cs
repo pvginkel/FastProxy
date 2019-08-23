@@ -122,6 +122,9 @@ namespace FastProxy
 
             upstream?.Abort();
             downstream?.Abort();
+
+            DisposeUtils.DisposeSafely(ref source);
+            DisposeUtils.DisposeSafely(ref target);
         }
 
         private void RaiseException(Exception exception)
