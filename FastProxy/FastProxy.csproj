@@ -4,7 +4,7 @@
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Version>0.2.0.0</Version>
+    <Version>0.2.1.0</Version>
     <Authors>Pieter van Ginkel</Authors>
     <Copyright>Pieter van Ginkel © 2019</Copyright>
     <PackageProjectUrl>https://github.com/pvginkel/FastProxy</PackageProjectUrl>
